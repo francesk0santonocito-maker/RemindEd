@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -309,9 +309,10 @@
   <div id="app-principal" style="display: none;">
 
     <div class="top-bar">
-      <button class="hamburger" onclick="toggleMenu()">☰</button>
-      <div class="brand-logo" id="greeting-header">Remind<span>Ed</span></div>
-      <div class="top-bar-right">
+  <button class="hamburger" onclick="toggleMenu()">☰</button>
+  <div class="brand-logo" id="greeting-header">Remind<span>Ed</span></div>
+  <div class="top-bar-right"></div>
+</div>
         <!-- El selector de idioma ya no aparece aquí en el panel principal -->
       </div>
       <div id="nav-menu" class="nav-menu">
