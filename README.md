@@ -1,1 +1,2812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RemindEd - Smart Organization</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-color: #f7f9fc;
+      --card-bg: #ffffff;
+      --text-color: #2b2d42;
+      --primary: #6c5ce7;
+      --primary-hover: #5849d6;
+      --accent: #00cec9;
+      --success: #00b894;
+      --warning: #fdcb6e;
+      --danger: #ff7675;
+      --border-color: #e2e8f0;
+      --item-bg: #f8fafc;
+      --shadow: 0 10px 25px -5px rgba(108, 92, 231, 0.08);
+      --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
+      --glow-red: 0 0 15px rgba(255, 118, 117, 0.6), inset 0 0 10px rgba(255, 118, 117, 0.2);
+      --glow-yellow: 0 0 15px rgba(253, 203, 110, 0.7), inset 0 0 10px rgba(253, 203, 110, 0.25);
+      --glow-green: 0 0 18px rgba(0, 184, 148, 0.8), inset 0 0 12px rgba(0, 184, 148, 0.3);
+    }
+
+    body.dark-mode {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f1f5f9;
+      --primary: #818cf8;
+      --primary-hover: #6366f1;
+      --accent: #2dd4bf;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --border-color: #334155;
+      --item-bg: #0f172a;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+
+      --glow-red: 0 0 18px rgba(248, 113, 113, 0.7), inset 0 0 10px rgba(248, 113, 113, 0.25);
+      --glow-yellow: 0 0 18px rgba(251, 191, 36, 0.8), inset 0 0 10px rgba(251, 191, 36, 0.3);
+      --glow-green: 0 0 22px rgba(52, 211, 153, 0.9), inset 0 0 12px rgba(52, 211, 153, 0.35);
+    }
+
+    body { font-family: 'Poppins', sans-serif; padding: 20px; background: var(--bg-color); color: var(--text-color); margin: 0; transition: var(--transition); }
+    
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; position: relative; z-index: 1000; }
+    .top-bar-right { display: flex; align-items: center; gap: 10px; }
+    .hamburger { font-size: 1.6rem; cursor: pointer; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; color: var(--primary); padding: 8px 12px; box-shadow: var(--shadow); transition: var(--transition); }
+    .hamburger:hover { transform: scale(1.05); background: var(--primary); color: white; }
+    
+    .brand-logo { font-size: 1.7rem; font-weight: 700; color: var(--primary); text-align: center; flex-grow: 1; letter-spacing: -0.5px; }
+    .brand-logo span { color: var(--accent); }
+
+    .lang-selector-top { padding: 8px 12px; border-radius: 12px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-family: 'Poppins', sans-serif; font-size: 0.9rem; cursor: pointer; outline: none; box-shadow: var(--shadow); transition: var(--transition); }
+    .lang-selector-top:hover { border-color: var(--primary); }
+
+    .nav-menu { display: none; position: absolute; top: 55px; left: 0; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 30px rgba(0,0,0,0.25); z-index: 2000; width: 280px; overflow: hidden; animation: fadeIn 0.25s ease; }
+    .nav-menu button { width: 100%; text-align: left; padding: 14px 18px; background: none; border: none; color: var(--text-color); font-size: 0.95rem; font-weight: 500; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: var(--transition); }
+    .nav-menu button:last-child { border-bottom: none; }
+    .nav-menu button:hover { background: var(--primary); color: white; padding-left: 24px; }
+
+    .card { background: var(--card-bg); padding: 24px; border-radius: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 2px solid var(--border-color); transition: var(--transition); position: relative; }
+    .card:hover { transform: translateY(-3px); }
+    
+    .glow-border-red { border-color: var(--danger) !important; box-shadow: var(--glow-red) !important; }
+    .glow-border-yellow { border-color: var(--warning) !important; box-shadow: var(--glow-yellow) !important; }
+    .glow-border-green { border-color: var(--success) !important; box-shadow: var(--glow-green) !important; }
+
+    h2, h3 { margin-top: 0; color: var(--primary); font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    p, li { font-size: 1rem; line-height: 1.6; }
+    
+    .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; margin-right: 10px; cursor: pointer; transition: var(--transition); }
+    .dot:hover { transform: scale(1.3); }
+    .dot-red { background-color: var(--danger); box-shadow: 0 0 8px rgba(248, 113, 113, 0.6); }
+    .dot-green { background-color: var(--success); box-shadow: 0 0 8px rgba(52, 211, 153, 0.8); }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+    th, td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 10px; text-align: center; font-size: 0.85rem; }
+    th:last-child, td:last-child { border-right: none; }
+    tr:last-child td { border-bottom: none; }
+    th { background: var(--primary); color: white; font-weight: 600; }
+    
+    #pantalla-bienvenida input { padding: 14px 20px; font-size: 1.1rem; border-radius: 12px; border: 1px solid var(--border-color); margin: 15px 0; text-align: center; outline: none; width: 100%; max-width: 280px; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    #pantalla-bienvenida button, .btn-action, .btn { padding: 10px 20px; font-size: 0.95rem; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3); }
+    #pantalla-bienvenida button:hover, .btn-action:hover, .btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4); }
+    
+    .btn-secondary { background: var(--accent) !important; }
+    .btn-small { padding: 6px 12px !important; font-size: 0.85rem !important; }
+
+    .input-form { padding: 10px 14px; font-size: 0.95rem; border: 2px solid var(--border-color); border-radius: 12px; background: var(--card-bg); color: var(--text-color); outline: none; font-family: 'Poppins', sans-serif; transition: var(--transition); }
+    .input-form:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15); }
+
+    .item-list { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--item-bg); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border-color); transition: var(--transition); }
+    .item-list:hover { border-color: var(--primary); }
+    
+    .btn-del { background: var(--danger); color: white; border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 500; font-size: 0.85rem; transition: var(--transition); }
+    .btn-del:hover { opacity: 0.85; transform: scale(1.05); }
+    
+    .form-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .section-page { display: none; animation: fadeIn 0.3s ease; }
+    .section-active { display: block; }
+
+    .dashboard-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 25px; }
+    .row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .row > .card { flex: 1; min-width: 280px; margin-bottom: 0; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-bar-container { background: var(--item-bg); border-radius: 12px; height: 16px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--border-color); }
+    .progress-bar { background: linear-gradient(90deg, var(--accent), var(--success)); height: 100%; width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; }
+    
+    .materia-card { border: 2px solid var(--border-color); padding: 18px; border-radius: 18px; margin-bottom: 16px; background: var(--item-bg); transition: var(--transition); }
+    .promedio-tag { font-weight: 600; color: var(--primary); float: right; background: rgba(108, 92, 231, 0.1); padding: 3px 12px; border-radius: 8px; font-size: 0.9rem; }
+
+    .countdown-box { background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(0, 206, 201, 0.08)); border: 2px dashed var(--primary); padding: 20px; border-radius: 18px; text-align: center; margin-bottom: 20px; }
+    .countdown-timer { font-size: 1.8rem; font-weight: 700; color: var(--danger); margin-top: 8px; letter-spacing: -1px; }
+
+    .modal-config { display: none; background: var(--item-bg); border: 2px solid var(--border-color); padding: 20px; border-radius: 16px; margin-top: 15px; animation: fadeIn 0.2s ease; }
+    .block-config-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: var(--card-bg); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border-color); }
+
+    .days-checkboxes { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+    .days-checkboxes label { font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+
+    .trophy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 15px; }
+    .trophy-card { background: var(--item-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; opacity: 0.45; transition: var(--transition); }
+    .trophy-card.unlocked { opacity: 1; border-color: var(--warning); box-shadow: 0 10px 25px rgba(251, 191, 36, 0.15); transform: translateY(-2px); }
+    .badge-nivel { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; color: white; display: inline-block; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .badge-bronce { background: #d97706; }
+    .badge-plata { background: #64748b; }
+    .badge-oro { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .badge-diamante { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+
+    .note-item { background: var(--item-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: var(--transition); }
+    .note-item:hover { border-color: var(--primary); }
+    .note-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: #64748b; margin-bottom: 6px; font-weight: 500; }
+
+    .canvas-container { text-align: center; overflow-x: auto; padding: 10px 0; position: relative; height: 260px; }
+    canvas { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 14px; width: 100% !important; height: 100% !important; box-shadow: var(--shadow); }
+    
+    .tutorial-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9998; }
+    .tutorial-card { 
+      position: fixed; 
+      bottom: 20px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      z-index: 10000; 
+      background: var(--card-bg); 
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      padding: 20px; 
+      border-radius: 12px; 
+      max-width: 90%; 
+      width: 400px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .hidden { display: none !important; }
+
+    /* ONBOARDING */
+    .welcome-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; background: var(--background, #f8fafc);
+    }
+    .welcome-card {
+      width: min(460px, 100%); padding: 40px; text-align: center;
+      background: var(--card-bg, white); border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    }
+    .welcome-card h2 { margin: 0 0 10px; font-size: 2rem; }
+    .welcome-subtitle { margin-bottom: 30px; color: #64748b; }
+    .onboarding-step { animation: onboardingFade .25s ease; }
+    @keyframes onboardingFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .onboarding-step label { display:block; margin-bottom:12px; font-weight:600; font-size:1.05rem; }
+    .onboarding-step input {
+      width:100%; box-sizing:border-box; padding:14px 16px; margin-bottom:18px;
+      border:1px solid var(--border-color, #cbd5e1); border-radius:12px; font-size:1rem; outline:none;
+      background: var(--card-bg, white); color: var(--text-color, #1f2937);
+    }
+    .onboarding-step input:focus { border-color:var(--primary,#6c5ce7); box-shadow:0 0 0 3px rgba(108,92,231,.12); }
+    .onboarding-options { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+    .role-option {
+      display:flex; flex-direction:column; align-items:center; gap:5px; padding:20px 12px;
+      background:var(--card-bg,white); color:var(--text-color,#1f2937);
+      border:2px solid var(--border-color,#e2e8f0); border-radius:16px; cursor:pointer;
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .role-option:hover { transform:translateY(-2px); border-color:var(--primary,#6c5ce7); }
+    .role-option.selected {
+      border-color:var(--primary,#6c5ce7) !important;
+      background:rgba(108,92,231,.14) !important;
+      box-shadow:0 0 0 4px rgba(108,92,231,.18), 0 8px 26px rgba(108,92,231,.24) !important;
+      transform:translateY(-2px) scale(1.01);
+    }
+    .role-option.selected strong { color:var(--primary,#6c5ce7); }
+    .role-option.selected .role-icon { transform:scale(1.08); }
+    .role-icon { font-size:32px; margin-bottom:5px; transition:transform .2s ease; }
+    .role-option small { color:#64748b; }
+    .onboarding-help { margin:-3px 0 18px; font-size:.9rem; line-height:1.5; color:#64748b; }
+    @media (max-width:500px) { .welcome-card { padding:28px 20px; } .onboarding-options { grid-template-columns:1fr; } }
+    .tutorial-highlight { 
+      position: relative !important; 
+      z-index: 9999 !important; 
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 229, 255, 0.4) !important; 
+      border: 2px solid #00e5ff !important; 
+      background-color: var(--card-bg) !important; 
+      color: var(--text-color) !important; 
+      border-radius: 12px !important; 
+      transition: all 0.3s ease !important; 
+    }
+
+    .trophy-popup {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      z-index: 20000;
+      background: var(--card-bg);
+      border: 2px solid var(--warning);
+      box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .trophy-popup-icon { font-size: 2.2rem; }
+    .trophy-popup-title { font-weight: 700; font-size: 1rem; color: var(--text-color); margin: 0; }
+    .trophy-popup-desc { font-size: 0.85rem; color: #64748b; margin: 2px 0 0 0; }
+
+    @keyframes popIn {
+      from { transform: translateY(-50px) scale(0.8); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Pop-Up Notificación de Trofeo -->
+  <div id="trophy-popup" class="trophy-popup hidden">
+    <div class="trophy-popup-icon">🏆</div>
+    <div>
+      <div class="trophy-popup-title" id="trophy-popup-title">Achievement Unlocked!</div>
+      <div class="trophy-popup-desc" id="trophy-popup-desc">Trophy Name</div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE BIENVENIDA / ONBOARDING (Corregido: se eliminó el style position: relative conflictivo) -->
+  <div id="pantalla-bienvenida" class="welcome-screen">
+    <!-- Selector de idioma exclusivo de la pantalla de inicio (Arriba a la derecha) -->
+    <div style="position: absolute; top: 20px; right: 20px;">
+      <select id="top-select-idioma" class="lang-selector-top" onchange="cambiarIdiomaDesdeTop(this.value)">
+        <option value="en">🇬🇧 EN</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="pt">🇧🇷 PT</option>
+      </select>
+    </div>
+
+    <div class="welcome-card">
+      <h2 style="font-size: 1.5rem; margin-bottom: 10px; text-align: center; width: 100%; display: block;" data-i18n="welcome_title">Welcome to <span style="color: var(--primary);">Remind<span style="color: var(--accent);">Ed</span></span>!</h2>
+      <p class="welcome-subtitle" data-i18n="welcome_subtitle">Let's personalize your experience.</p>
+      
+      <!-- PASO 1: NOMBRE -->
+      <div id="onboarding-paso-1" class="onboarding-step">
+        <label id="lbl-q-te-llamas" for="onboarding-nombre" data-i18n="lbl_what_is_your_name">What is your name?</label>
+        <input type="text" id="onboarding-nombre" data-i18n-placeholder="placeholder_your_name" placeholder="Type your name" autocomplete="name">
+        <button type="button" class="btn" id="btn-cont-1" onclick="onboardingContinuarNombre()" data-i18n="btn_continue">Continue →</button>
+      </div>
+
+      <!-- PASO 2: ROL -->
+      <div id="onboarding-paso-2" class="onboarding-step" style="display:none;">
+        <label id="lbl-q-haces" data-i18n="lbl_what_do_you_do">What do you currently do?</label>
+        <div class="onboarding-options">
+          <button type="button" id="btn-rol-estudiante" class="role-option" onclick="seleccionarRol('estudiante')">
+            <span class="role-icon">🎓</span>
+            <strong id="lbl-estudio-opt" data-i18n="role_study">Study</strong>
+            <small id="lbl-estudiando" data-i18n="role_studying">I am studying</small>
+          </button>
+          <button type="button" id="btn-rol-trabajador" class="role-option" onclick="seleccionarRol('trabajador')">
+            <span class="role-icon">💼</span>
+            <strong id="lbl-trabajo-opt" data-i18n="role_work">Work</strong>
+            <small id="lbl-trabajando" data-i18n="role_working">I am working</small>
+          </button>
+        </div>
+        <button type="button" class="btn" id="btn-cont-2" onclick="onboardingContinuarRol()" data-i18n="btn_continue">Continue →</button>
+      </div>
+
+      <!-- PASO 3: NOTA MÁXIMA -->
+      <div id="onboarding-paso-3" class="onboarding-step" style="display:none;">
+        <label id="lbl-nota-max-pregunta" for="onboarding-nota-max" data-i18n="lbl_max_grade">What is the maximum grade of your educational system?</label>
+        <p class="onboarding-help" id="lbl-nota-max-help" data-i18n="lbl_max_grade_help">RemindEd will use this scale to adapt your charts and stats.</p>
+        <input type="number" id="onboarding-nota-max" min="1" step="0.1" placeholder="Ex.: 20">
+        <button type="button" class="btn" id="btn-empezar" onclick="guardarPerfilInicial()" data-i18n="btn_start">Start with RemindEd 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div id="app-principal" style="display: none;">
+
+    <div class="top-bar">
+      <button class="hamburger" onclick="toggleMenu()">☰</button>
+      <div class="brand-logo" id="greeting-header">Remind<span>Ed</span></div>
+      <div class="top-bar-right">
+        <!-- El selector de idioma ya no aparece aquí en el panel principal -->
+      </div>
+      <div id="nav-menu" class="nav-menu">
+        <button onclick="navegarA('panel')" data-i18n="menu_panel">📌 Control Panel</button>
+        <button id="menu-estudio" onclick="navegarA('estudio')" data-i18n="menu_pomodoro">🍅 Pomodoro Mode</button>
+        <button id="menu-eventos" onclick="navegarA('examenes')" data-i18n="menu_eventos">📅 Events & Meetings</button>
+        <button onclick="navegarA('hobbies')" data-i18n="menu_hobbies">🎨 My Hobbies</button>
+        <button onclick="navegarA('sueno')" data-i18n="menu_sueno">💤 Sleep Tracker</button>
+        <button onclick="navegarA('objetivos')" data-i18n="menu_objetivos">🎯 My Goals</button>
+        <button onclick="navegarA('notas')" data-i18n="menu_notas">📝 Notes & Memos</button>
+        <button onclick="navegarA('trofeos')" data-i18n="menu_trofeos">🏆 Trophies & Achievements</button>
+        <button onclick="navegarA('ajustes')" data-i18n="menu_ajustes">⚙️ Settings</button>
+      </div>
+    </div>
+
+    <!-- PANEL DE CONTROL -->
+    <div id="page-panel" class="section-page section-active">
+
+      <!-- DASHBOARD EXCLUSIVO TRABAJADOR -->
+      <div id="bloques-trabajador" class="dashboard-container" style="display: none;">
+        <section class="row top-row">
+          <div class="card widget-activity" id="card-actividad-actual">
+            <h3 data-i18n="actividad_actual">⚡ Current Activity</h3>
+            <div class="activity-info">
+              <p class="activity-title" id="current-activity" style="font-weight:600; font-size:1.1rem; color:var(--primary); margin-bottom:5px;" data-i18n="loading_schedule">Loading schedule...</p>
+              <div id="worker-timer-container">
+                <p style="margin: 4px 0; font-size:0.95rem;"><span data-i18n="llevas_transcurrido">Elapsed time:</span> <span id="worker-time-elapsed" style="font-weight:700; color:var(--accent);">00:00:00</span></p>
+                <p style="margin: 4px 0; font-size:0.95rem;" id="worker-next-info"><span data-i18n="proxima_actividad_en">Next activity in:</span> <span id="worker-time-remaining" style="font-weight:700; color:var(--warning);">00:00:00</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card widget-next-event" id="card-proximo-evento">
+            <h3 data-i18n="proximo_evento_reunion">📌 Featured Next Event / Meeting</h3>
+            <div class="event-info" id="next-event-container">
+              <p class="event-title" id="event-title" data-i18n="no_hay_eventos">No upcoming events or meetings</p>
+              <p class="event-time" id="event-time" style="font-weight:600; color:var(--accent);">--:--</p>
+            </div>
+            <button class="btn btn-small" onclick="navegarA('examenes')" style="margin-top: 10px;" data-i18n="agendar_evento">+ Schedule Event</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- BLOQUE OBJETIVOS TRABAJADOR -->
+      <div id="bloque-objetivos-trabajador" class="card" style="display: none;">
+        <h3 data-i18n="objetivos_diarios_trabajo">🎯 Daily Work Goals</h3>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="goals-progress" style="width: 0%;"></div>
+        </div>
+        <p class="progress-text" id="goals-text" style="font-size:0.9rem; font-weight:600; color:#64748b; margin-top:5px;">0 of 0 completed (0%)</p>
+
+        <ul class="task-list" id="task-list" style="padding-left: 0; list-style:none;"></ul>
+
+        <div class="add-task-form form-group">
+          <input type="text" id="new-task-input" class="input-form" data-i18n-placeholder="placeholder_nuevo_objetivo" placeholder="New work goal..." style="flex:1;">
+          <button class="btn btn-small" onclick="addTask()" data-i18n="agregar">Add</button>
+        </div>
+      </div>
+
+      <!-- SECCIONES ESTUDIANTE -->
+      <div class="countdown-box" id="box-cuenta-atras" style="display: none;">
+        <span style="font-weight: 600;" data-i18n="proximo_examen_cercano">⏳ Closest Exam / Deadline:</span>
+        <div id="nombre-examen-cercano" style="font-size: 1.15rem; margin-top: 6px; font-weight: 600;">-</div>
+        <div class="countdown-timer" id="timer-cuenta-atras">00d 00h 00m 00s</div>
+      </div>
+
+      <div class="card tarjeta-tutorial" id="card-proxima-clase">
+        <h2 id="titulo-proxima-actividad" data-i18n="proxima_clase_actividad">🎓 Next Class / Activity</h2>
+        <p id="info-clase" data-i18n="loading">Loading...</p>
+      </div>
+
+      <div class="card tarjeta-tutorial" id="card-objetivos-contenedor">
+        <h2 data-i18n="objetivos_tareas_diarias">🎯 Daily Goals / Tasks</h2>
+        <p style="font-size: 0.85rem; color:#64748b; margin-top:-5px;" data-i18n="borde_cambia_verde">The border turns green when you complete your daily tasks.</p>
+        <div id="lista-objetivos-diarios"></div>
+      </div>
+
+      <div class="card tarjeta-tutorial" id="card-examenes-destacados">
+        <h2 id="titulo-bloque-eventos" data-i18n="proximos_examenes_destacados">📅 Upcoming Featured Exams</h2>
+        <div id="lista-examenes-resumen"></div>
+      </div>
+
+      <div class="card tarjeta-tutorial" id="card-estado-sueno">
+        <h2 data-i18n="estado_sueno">🌙 Sleep Status</h2>
+        <p id="info-sueno" data-i18n="loading_sleep">Loading rest habits...</p>
+        <button class="btn btn-small" style="margin-top: 10px;" onclick="logSleep()" data-i18n="registrar_sueno">Log Last Night's Sleep</button>
+      </div>
+
+      <div class="card tarjeta-tutorial" id="card-horario-semanal">
+        <h2 data-i18n="horario_semanal_completo">🗓️ Full Weekly Schedule</h2>
+        <div style="margin-bottom: 15px; background: var(--item-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+          <h3 style="margin-top:0; font-size:1rem; color:var(--primary);" data-i18n="anadir_horas_horario">Add Hours to Schedule</h3>
+          <div class="form-group">
+            <select id="horario-dia-select" class="input-form">
+              <option value="1" data-i18n="dia_lunes">Monday</option>
+              <option value="2" data-i18n="dia_martes">Tuesday</option>
+              <option value="3" data-i18n="dia_miercoles">Wednesday</option>
+              <option value="4" data-i18n="dia_jueves">Thursday</option>
+              <option value="5" data-i18n="dia_viernes">Friday</option>
+              <option value="6" data-i18n="dia_sabado">Saturday</option>
+              <option value="0" data-i18n="dia_domingo">Sunday</option>
+            </select>
+            
+            <label style="font-size: 0.85rem; font-weight:600;" data-i18n="desde">From:</label>
+            <input type="time" id="horario-inicio-time" class="input-form" value="08:00" />
+            <label style="font-size: 0.85rem; font-weight:600;" data-i18n="hasta">To:</label>
+            <input type="time" id="horario-fin-time" class="input-form" value="09:00" />
+
+            <select id="horario-materia-select" class="input-form"></select>
+            <input type="text" id="horario-aula-input" class="input-form" data-i18n-placeholder="placeholder_lugar_aula" placeholder="Location / Room" style="width: 120px;" />
+            <button onclick="agregarHorarioBloque()" class="btn-action" data-i18n="guardar_bloque">Save Block</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_hora">Time</th>
+                <th data-i18n="dia_lunes">Monday</th>
+                <th data-i18n="dia_martes">Tuesday</th>
+                <th data-i18n="dia_miercoles">Wednesday</th>
+                <th data-i18n="dia_jueves">Thursday</th>
+                <th data-i18n="dia_viernes">Friday</th>
+                <th data-i18n="dia_sabado">Saturday</th>
+                <th data-i18n="dia_domingo">Sunday</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-horario-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODO ESTUDIO (POMODORO) -->
+    <div id="page-estudio" class="section-page">
+      <div class="card">
+        <h2 data-i18n="modo_concentracion">⏱️ Focus Mode (Pomodoro)</h2>
+        <p style="text-align: center; font-size: 1.1rem; color: var(--success); font-weight: 600;" id="tiempo-estudiado-hoy">Focused time today: 0 min</p>
+        <p style="text-align: center; font-weight: 500;" id="timer-mode">Block 1 / 4 - Study/Work Session</p>
+        <div class="timer-display" id="timer-display" style="font-size: 3.5rem; font-weight: 700; text-align: center; margin: 20px 0; color: var(--primary); letter-spacing: -2px;">25:00</div>
+        <div class="timer-controls" style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+          <button onclick="iniciarTimer()" class="btn-action" data-i18n="btn_iniciar">Start</button>
+          <button onclick="pausarTimer()" class="btn-action" style="background: var(--warning); color: #2b2d42;" data-i18n="btn_pausar">Pause</button>
+          <button onclick="reiniciarTimer()" class="btn-action" style="background: var(--danger);" data-i18n="btn_reiniciar">Reset</button>
+          <button onclick="toggleConfigPomodoro()" class="btn-action" style="background: #a855f7;" data-i18n="btn_config_bloques">⚙️ Configure Blocks</button>
+        </div>
+
+        <div class="modal-config" id="modal-config-pomodoro">
+          <h3 style="color: var(--primary); margin-top:0;" data-i18n="personalizar_duracion">Customize Block Duration</h3>
+          <div id="contenedor-bloques-config"></div>
+          <button onclick="guardarConfigPomodoro()" class="btn-action" style="margin-top: 10px;" data-i18n="guardar_config">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTOS Y REUNIONES / EXÁMENES -->
+    <div id="page-examenes" class="section-page">
+      <div class="card" id="card-gestion-materias">
+        <h2 id="titulo-materia-gestor" data-i18n="gestor_asignaturas_proyectos">📚 Subjects & Projects Manager</h2>
+        <div class="form-group">
+          <input type="text" id="nueva-asignatura-nombre" class="input-form" data-i18n-placeholder="placeholder_nombre_asig" placeholder="Name (e.g. Project X / History)" style="flex:1;" />
+          <button onclick="agregarNuevaAsignatura()" class="btn-action" data-i18n="anadir">Add</button>
+        </div>
+        <div id="lista-gestion-asignaturas" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card" id="card-nuevo-examen">
+        <h2 id="titulo-agendar-evento" data-i18n="agendar_proximo_evento">📅 Schedule Next Event / Exam</h2>
+        <div class="form-group">
+          <select id="examen-materia-select" class="input-form"></select>
+          <input type="datetime-local" id="examen-fecha" class="input-form" />
+          <input type="text" id="examen-objetivo-nota" class="input-form" data-i18n-placeholder="placeholder_meta_clave" placeholder="Grade or Key Goal" style="width:160px;" />
+          <button onclick="agregarExamen()" class="btn-action" data-i18n="guardar">Save</button>
+        </div>
+        <h3 style="color:var(--primary); font-size:1.1rem; margin-top:20px;" data-i18n="eventos_programados">Scheduled Events</h3>
+        <div id="lista-examenes-completa"></div>
+      </div>
+
+      <div class="card" id="card-metricas-notas">
+        <h2 id="titulo-rendimiento-notas" data-i18n="registro_notas_calificaciones">📊 Grades & Ratings Record</h2>
+        <p style="font-size:0.85rem; color:#64748b; margin-top:-5px;" data-i18n="registra_calificaciones_desc">Record your grades or progress to automatically calculate averages and chart your progress.</p>
+        <div id="contenedor-asignaturas"></div>
+      </div>
+
+      <!-- GRÁFICO DE EVOLUCIÓN -->
+      <div class="card" id="card-grafico-notas">
+        <h2 id="titulo-grafico-desempeno" data-i18n="grafico_evolucion_academica">📈 Academic Evolution Chart</h2>
+        <div class="canvas-container">
+          <canvas id="chart-notas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOBBIES -->
+    <div id="page-hobbies" class="section-page">
+      <div class="card">
+        <h2 data-i18n="mis_hobbies_actividades">🎨 My Hobbies & Free Activities</h2>
+        <div class="form-group">
+          <input type="text" id="hobby-nombre" class="input-form" data-i18n-placeholder="placeholder_hobby" placeholder="Hobby or Sport..." style="flex:1;" />
+          <input type="time" id="hobby-hora-libre" class="input-form" value="18:00" />
+        </div>
+        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin: 12px 0 6px 0;" data-i18n="dias_repeticion">Repeat days:</label>
+        <div class="days-checkboxes">
+          <label><input type="checkbox" value="1" class="chk-dia"> <span data-i18n="dia_lunes">Monday</span></label>
+          <label><input type="checkbox" value="2" class="chk-dia"> <span data-i18n="dia_martes">Tuesday</span></label>
+          <label><input type="checkbox" value="3" class="chk-dia"> <span data-i18n="dia_miercoles">Wednesday</span></label>
+          <label><input type="checkbox" value="4" class="chk-dia"> <span data-i18n="dia_jueves">Thursday</span></label>
+          <label><input type="checkbox" value="5" class="chk-dia"> <span data-i18n="dia_viernes">Friday</span></label>
+          <label><input type="checkbox" value="6" class="chk-dia"> <span data-i18n="dia_sabado">Saturday</span></label>
+          <label><input type="checkbox" value="0" class="chk-dia"> <span data-i18n="dia_domingo">Sunday</span></label>
+        </div>
+        <button onclick="agregarHobbyMulti()" class="btn-action" style="margin-top: 10px;" data-i18n="anadir_hobby">Add Hobby</button>
+        
+        <h3 style="color:var(--primary); font-size:1.1rem; margin-top:20px;" data-i18n="hobbies_registrados">Registered Hobbies</h3>
+        <div id="lista-hobbies"></div>
+      </div>
+    </div>
+
+    <!-- CONTROL DE SUEÑO -->
+    <div id="page-sueno" class="section-page">
+      <div class="card">
+        <h2 data-i18n="config_control_sueno">💤 Sleep Tracker Configuration</h2>
+        <div class="form-group">
+          <label><span data-i18n="horas_sueno_deseadas">Desired sleep hours:</span> <input type="number" step="0.5" id="sueno-horas" class="input-form" value="8" style="width:70px;" /></label>
+          <label><span data-i18n="hora_dormir">Bedtime:</span> <input type="time" id="sueno-acostar" class="input-form" value="23:00" /></label>
+          <label><span data-i18n="hora_despertar">Wake-up Time:</span> <input type="time" id="sueno-despertar" class="input-form" value="07:00" /></label>
+        </div>
+        <button onclick="guardarConfigSueno()" class="btn-action" data-i18n="guardar_habitos">Save Habits</button>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="resumen_descanso">🌙 Rest Summary</h2>
+        <div id="resumen-sueno-box">
+          <p data-i18n="cargando_sueno">Loading sleep data...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIS OBJETIVOS -->
+    <div id="page-objetivos" class="section-page">
+      <div class="card">
+        <h2 data-i18n="administrar_objetivos_diarios">🎯 Manage Daily Goals</h2>
+        <div class="form-group">
+          <input type="text" id="nuevo-objetivo" class="input-form" style="width: 60%;" data-i18n-placeholder="placeholder_nuevo_objetivo_gral" placeholder="New goal..." />
+          <button onclick="agregarObjetivo()" class="btn-action" data-i18n="anadir_objetivo">Add Goal</button>
+        </div>
+        <div id="lista-objetivos-admin"></div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="constancia_exito_mes">📈 Monthly Consistency & Success</h2>
+        <p id="porcentaje-exito" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">0% Success</p>
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <br>
+        <h3 style="color:var(--primary); font-size:1.1rem;" data-i18n="registro_mensual">Monthly Log (Last 30 days)</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr><th data-i18n="th_dia">Day</th><th data-i18n="th_estado">Status</th></tr>
+            </thead>
+            <tbody id="tabla-historico"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTAS Y APUNTES -->
+    <div id="page-notas" class="section-page">
+      <div class="card">
+        <h2 data-i18n="anadir_apunte_nota">📝 Add Note / Memo</h2>
+        <div class="form-group">
+          <select id="nota-asig-select" class="input-form"></select>
+          <input type="text" id="nota-titulo" class="input-form" data-i18n-placeholder="placeholder_titulo_nota" placeholder="Title..." style="flex:1;" />
+        </div>
+        <div class="form-group">
+          <textarea id="nota-contenido" class="input-form" data-i18n-placeholder="placeholder_contenido_nota" placeholder="Write your note or meeting minutes here..." style="width:100%; height:90px; resize:vertical;"></textarea>
+        </div>
+        <button onclick="guardarApunte()" class="btn-action" data-i18n="guardar_apunte">Save Note</button>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="buscar_apuntes">🔍 Search Notes</h2>
+        <div class="form-group">
+          <input type="text" id="buscador-notas" class="input-form" data-i18n-placeholder="placeholder_buscar" placeholder="Search..." style="flex:1;" oninput="filtrarNotas()" />
+          <select id="filtro-asig" class="input-form" onchange="filtrarNotas()">
+            <option value="TODAS" data-i18n="todas_categorias">All categories</option>
+          </select>
+        </div>
+        <div id="contenedor-lista-apuntes" style="margin-top: 15px;"></div>
+      </div>
+    </div>
+
+    <!-- TROFEOS -->
+    <div id="page-trofeos" class="section-page">
+      <div class="card">
+        <h2 data-i18n="sala_trofeos">🏆 RemindEd Trophy Room</h2>
+        <div class="trophy-grid" id="grid-trofeos"></div>
+      </div>
+    </div>
+
+    <!-- AJUSTES -->
+    <div id="page-ajustes" class="section-page">
+      <!-- Tarjeta 1: Apariencia y Modo Oscuro/Claro -->
+      <div class="card" id="card-panel-colores">
+        <h2 data-i18n="personalizar_apariencia">🎨 Customize Appearance & Theme</h2>
+        <p style="font-size: 0.85rem; color: #64748b;" data-i18n="alterna_modo_visualizacion">Toggle display mode and customize primary colors:</p>
+        
+        <div style="margin: 15px 0; display: flex; justify-content: space-between; align-items: center; background: var(--item-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+          <div>
+            <h3 style="margin: 0; font-size: 1rem;" data-i18n="modo_oscuro_claro">Dark / Light Mode</h3>
+            <p style="margin: 3px 0 0 0; font-size: 0.85rem; opacity: 0.8;" data-i18n="alterna_apariencia_visual">Toggle visual appearance.</p>
+          </div>
+          <button onclick="alternarTema()" id="btn-cambiar-tema" class="btn-action" style="padding: 8px 16px;" data-i18n="btn_cambiar_tema">🌓 Change Theme</button>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 15px;">
+          <button onclick="cambiarColorTema('#6c5ce7', '#00cec9')" class="btn-small" style="background: #6c5ce7; border: none; color: white;" data-i18n="tema_morado">💜 RemindEd Purple</button>
+          <button onclick="cambiarColorTema('#0984e3', '#74b9ff')" class="btn-small" style="background: #0984e3; border: none; color: white;" data-i18n="tema_azul">💙 Ocean Blue</button>
+          <button onclick="cambiarColorTema('#00b894', '#55efc4')" class="btn-small" style="background: #00b894; border: none; color: white;" data-i18n="tema_verde">💚 Emerald Green</button>
+          <button onclick="cambiarColorTema('#e17055', '#ffeaa7')" class="btn-small" style="background: #e17055; border: none; color: white;" data-i18n="tema_terracota">🧡 Terracotta / Warm</button>
+          <button onclick="cambiarColorTema('#d63031', '#ff7675')" class="btn-small" style="background: #d63031; border: none; color: white;" data-i18n="tema_rojo">🔴 Carmine Red</button>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px;">
+          <label style="font-size: 0.9rem; font-weight: 600;" data-i18n="elige_color_personalizado">Or choose a custom color:</label>
+          <input type="color" id="picker-color-primary" value="#6c5ce7" onchange="aplicarColorPersonalizado(this.value)" style="border: none; background: none; cursor: pointer; width: 40px; height: 40px;">
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Idioma -->
+      <div class="card">
+        <h2 data-i18n="idioma_aplicacion">🌐 Application Language</h2>
+        <p style="font-size: 0.85rem; color: #64748b;" data-i18n="selecciona_idioma_interfaz">Select the language you want for the interface:</p>
+        <div class="form-group" style="margin-top: 15px;">
+          <select id="ajustes-select-idioma" class="input-form" style="flex:1;">
+            <option value="en">🇬🇧 English</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="pt">🇧🇷 Português</option>
+          </select>
+          <button onclick="guardarIdiomaDesdeAjustes()" class="btn-action" data-i18n="cambiar_idioma">Change Language</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3: Cambiar Nombre -->
+      <div class="card">
+        <h2 data-i18n="cambiar_nombre_usuario">✏️ Change Username</h2>
+        <p style="font-size: 0.85rem; color: #64748b;" data-i18n="actualiza_nombre_saludo">Update how the app greets you:</p>
+        <div class="form-group" style="margin-top: 15px;">
+          <input type="text" id="ajustes-input-nombre" class="input-form" data-i18n-placeholder="placeholder_nuevo_nombre" placeholder="Type your new name" style="flex:1;" />
+          <button onclick="guardarNombreDesdeAjustes()" class="btn-action" data-i18n="guardar_nombre">Save Name</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 4: Cambiar Rol -->
+      <div class="card">
+        <h2 data-i18n="cambiar_rol">💼 Change Role (Student / Worker)</h2>
+        <p style="font-size: 0.85rem; color: #64748b;" data-i18n="modifica_actividad_actual">Modify your current main activity:</p>
+        <div class="form-group" style="margin-top: 15px;">
+          <select id="ajustes-select-rol" class="input-form" style="flex:1;">
+            <option value="estudiante" data-i18n="opt_estudiante">🎓 Student</option>
+            <option value="trabajador" data-i18n="opt_trabajador">💼 Worker</option>
+          </select>
+          <button onclick="guardarRolDesdeAjustes()" class="btn-action" data-i18n="guardar_rol">Save Role</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta 5: Copia de seguridad -->
+      <div class="card">
+        <h2 data-i18n="copia_seguridad_guias">⚙️ Backup & Guides</h2>
+        <button onclick="exportarDatos()" class="btn-action" data-i18n="exportar_copia">Export Backup</button>
+        <br><br>
+        <input type="file" id="import-file" style="display: none;" onchange="importarDatos(event)" />
+        <button onclick="document.getElementById('import-file').click()" class="btn-action" style="background: var(--success);" data-i18n="restaurar_datos">Restore Data</button>
+        <br><br>
+        <button onclick="reiniciarTutoriales()" class="btn-action" style="background: var(--warning); color: #2b2d42;" data-i18n="reactivar_guias">🔄 Reset Context Guides</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TUTORIAL INTERACTIVO -->
+  <div id="tutorial-overlay" class="tutorial-overlay hidden"></div>
+  <div id="tutorial-card" class="tutorial-card hidden">
+    <p id="tutorial-text"></p>
+    <div class="tutorial-buttons" style="display:flex; justify-content:space-between; margin-top:15px;">
+      <button id="tutorial-btn-skip" class="btn-action" style="background:var(--danger);" onclick="cerrarTutorialModulo()" data-i18n="btn_omitir">Skip</button>
+      <button id="tutorial-btn-next" class="btn-action" onclick="siguientePaso()" data-i18n="btn_entendido">Got it</button>
+    </div>
+  </div>
+
+  <script>
+    // --- DICCIONARIO DE TRADUCCIONES COMPLETO ---
+    const i18n = {
+      en: {
+        welcome_title: "Welcome to <span style='color: var(--primary);'>Remind<span style='color: var(--accent);'>Ed</span></span>!",
+        welcome_subtitle: "Let's personalize your experience.",
+        lbl_what_is_your_name: "What is your name?",
+        lbl_what_do_you_do: "What do you currently do?",
+        role_study: "Study",
+        role_studying: "I am studying",
+        role_work: "Work",
+        role_working: "I am working",
+        lbl_max_grade: "What is the maximum grade of your educational system?",
+        lbl_max_grade_help: "RemindEd will use this scale to adapt your charts and stats.",
+        btn_start: "Start with RemindEd 🚀",
+        menu_panel: "📌 Control Panel",
+        menu_pomodoro: "🍅 Pomodoro Mode",
+        menu_eventos: "📅 Events & Meetings",
+        menu_hobbies: "🎨 My Hobbies",
+        menu_sueno: "💤 Sleep Tracker",
+        menu_objetivos: "🎯 My Goals",
+        menu_notas: "📝 Notes & Memos",
+        menu_trofeos: "🏆 Trophies & Achievements",
+        menu_ajustes: "⚙️ Settings",
+        actividad_actual: "⚡ Current Activity",
+        llevas_transcurrido: "Elapsed time:",
+        proxima_actividad_en: "Next activity in:",
+        proximo_evento_reunion: "📌 Featured Next Event / Meeting",
+        no_hay_eventos: "No upcoming events or meetings",
+        agendar_evento: "+ Schedule Event",
+        objetivos_diarios_trabajo: "🎯 Daily Work Goals",
+        agregar: "Add",
+        proximo_examen_cercano: "⏳ Closest Exam / Deadline:",
+        proxima_clase_actividad: "🎓 Next Class / Activity",
+        objetivos_tareas_diarias: "🎯 Daily Goals / Tasks",
+        borde_cambia_verde: "The border turns green when you complete your daily tasks.",
+        proximos_examenes_destacados: "📅 Upcoming Featured Exams",
+        estado_sueno: "🌙 Sleep Status",
+        registrar_sueno: "Log Last Night's Sleep",
+        horario_semanal_completo: "🗓️ Full Weekly Schedule",
+        anadir_horas_horario: "Add Hours to Schedule",
+        dia_lunes: "Monday",
+        dia_martes: "Tuesday",
+        dia_miercoles: "Wednesday",
+        dia_jueves: "Thursday",
+        dia_viernes: "Friday",
+        dia_sabado: "Saturday",
+        dia_domingo: "Sunday",
+        desde: "From:",
+        hasta: "To:",
+        guardar_bloque: "Save Block",
+        th_hora: "Time",
+        modo_concentracion: "⏱️ Focus Mode (Pomodoro)",
+        btn_iniciar: "Start",
+        btn_pausar: "Pause",
+        btn_reiniciar: "Reset",
+        btn_config_bloques: "⚙️ Configure Blocks",
+        personalizar_duracion: "Customize Block Duration",
+        guardar_config: "Save Configuration",
+        gestor_asignaturas_proyectos: "📚 Subjects & Projects Manager",
+        anadir: "Add",
+        agendar_proximo_evento: "📅 Schedule Next Event / Exam",
+        guardar: "Save",
+        eventos_programados: "Scheduled Events",
+        registro_notas_calificaciones: "📊 Grades & Ratings Record",
+        registra_calificaciones_desc: "Record your grades or progress to automatically calculate averages and chart your progress.",
+        grafico_evolucion_academica: "📈 Academic Evolution Chart",
+        mis_hobbies_actividades: "🎨 My Hobbies & Free Activities",
+        dias_repeticion: "Repeat days:",
+        anadir_hobby: "Add Hobby",
+        hobbies_registrados: "Registered Hobbies",
+        config_control_sueno: "💤 Sleep Tracker Configuration",
+        horas_sueno_deseadas: "Desired sleep hours:",
+        hora_dormir: "Bedtime:",
+        hora_despertar: "Wake-up Time:",
+        guardar_habitos: "Save Habits",
+        resumen_descanso: "🌙 Rest Summary",
+        cargando_sueno: "Loading sleep data...",
+        administrar_objetivos_diarios: "🎯 Manage Daily Goals",
+        anadir_objetivo: "Add Goal",
+        constancia_exito_mes: "📈 Monthly Consistency & Success",
+        registro_mensual: "Monthly Log (Last 30 days)",
+        th_dia: "Day",
+        th_estado: "Status",
+        anadir_apunte_nota: "📝 Add Note / Memo",
+        guardar_apunte: "Save Note",
+        buscar_apuntes: "🔍 Search Notes",
+        todas_categorias: "All categories",
+        sala_trofeos: "🏆 RemindEd Trophy Room",
+        personalizar_apariencia: "🎨 Customize Appearance & Theme",
+        alterna_modo_visualizacion: "Toggle display mode and customize primary colors:",
+        modo_oscuro_claro: "Dark / Light Mode",
+        alterna_apariencia_visual: "Toggle visual appearance.",
+        btn_cambiar_tema: "🌓 Change Theme",
+        tema_morado: "💜 RemindEd Purple",
+        tema_azul: "💙 Ocean Blue",
+        tema_verde: "💚 Emerald Green",
+        tema_terracota: "🧡 Terracotta / Warm",
+        tema_rojo: "🔴 Carmine Red",
+        elige_color_personalizado: "Or choose a custom color:",
+        idioma_aplicacion: "🌐 Application Language",
+        selecciona_idioma_interfaz: "Select the language you want for the interface:",
+        cambiar_idioma: "Change Language",
+        cambiar_nombre_usuario: "✏️ Change Username",
+        actualiza_nombre_saludo: "Update how the app greets you:",
+        guardar_nombre: "Save Name",
+        cambiar_rol: "💼 Change Role (Student / Worker)",
+        modifica_actividad_actual: "Modify your current main activity:",
+        opt_estudiante: "🎓 Student",
+        opt_trabajador: "💼 Worker",
+        guardar_rol: "Save Role",
+        copia_seguridad_guias: "⚙️ Backup & Guides",
+        exportar_copia: "Export Backup",
+        restaurar_datos: "Restore Data",
+        reactivar_guias: "🔄 Reset Context Guides",
+        btn_omitir: "Skip",
+        btn_entendido: "Got it",
+        btn_continue: "Continue →",
+        loading: "Loading...",
+        loading_schedule: "Loading schedule...",
+        loading_sleep: "Loading rest habits...",
+        placeholder_your_name: "Type your name",
+        placeholder_nuevo_objetivo: "New work goal...",
+        placeholder_lugar_aula: "Location / Room",
+        placeholder_nombre_asig: "Name (e.g., Project X / History)",
+        placeholder_meta_clave: "Grade or Key Goal",
+        placeholder_hobby: "Hobby or Sport...",
+        placeholder_nuevo_objetivo_gral: "New goal...",
+        placeholder_titulo_nota: "Title...",
+        placeholder_contenido_nota: "Write your note or meeting minutes here...",
+        placeholder_buscar: "Search...",
+        placeholder_nuevo_nombre: "Type your new name"
+      },
+      es: {
+        welcome_title: "¡Bienvenido a <span style='color: var(--primary);'>Remind<span style='color: var(--accent);'>Ed</span></span>!",
+        welcome_subtitle: "Vamos a personalizar tu experiencia.",
+        lbl_what_is_your_name: "¿Cómo te llamas?",
+        lbl_what_do_you_do: "¿Qué haces actualmente?",
+        role_study: "Estudio",
+        role_studying: "Estoy estudiando",
+        role_work: "Trabajo",
+        role_working: "Estoy trabajando",
+        lbl_max_grade: "¿Cuál es la nota máxima de tu sistema educativo?",
+        lbl_max_grade_help: "RemindEd utilizará esta escala para adaptar tus gráficos y estadísticas.",
+        btn_start: "Empezar con RemindEd 🚀",
+        menu_panel: "📌 Panel de Control",
+        menu_pomodoro: "🍅 Modo pomodoro",
+        menu_eventos: "📅 Eventos y Reuniones",
+        menu_hobbies: "🎨 Mis Hobbies",
+        menu_sueno: "💤 Control del Sueño",
+        menu_objetivos: "🎯 Mis Objetivos",
+        menu_notas: "📝 Notas y Apuntes",
+        menu_trofeos: "🏆 Trofeos y Logros",
+        menu_ajustes: "⚙️ Ajustes",
+        actividad_actual: "⚡ Actividad Actual",
+        llevas_transcurrido: "Llevas transcurrido:",
+        proxima_actividad_en: "Próxima actividad en:",
+        proximo_evento_reunion: "📌 Próximo Evento / Reunión Destacada",
+        no_hay_eventos: "No hay eventos ni reuniones próximas",
+        agendar_evento: "+ Agendar Evento",
+        objetivos_diarios_trabajo: "🎯 Objetivos Diarios de Trabajo",
+        agregar: "Agregar",
+        proximo_examen_cercano: "⏳ Próximo Examen Más Cercano:",
+        proxima_clase_actividad: "🎓 Próxima Clase / Actividad",
+        objetivos_tareas_diarias: "🎯 Objetivos / Tareas Diarias",
+        borde_cambia_verde: "El borde cambia a verde cuando completas tus tareas diarias.",
+        proximos_examenes_destacados: "📅 Próximos Exámenes Destacados",
+        estado_sueno: "🌙 Estado del Sueño",
+        registrar_sueno: "Registrar Sueño de Anoche",
+        horario_semanal_completo: "🗓️ Horario Semanal Completo",
+        anadir_horas_horario: "Añadir Horas al Horario",
+        dia_lunes: "Lunes",
+        dia_martes: "Martes",
+        dia_miercoles: "Miércoles",
+        dia_jueves: "Jueves",
+        dia_viernes: "Viernes",
+        dia_sabado: "Sábado",
+        dia_domingo: "Domingo",
+        desde: "Desde:",
+        hasta: "Hasta:",
+        guardar_bloque: "Guardar Bloque",
+        th_hora: "Hora",
+        modo_concentracion: "⏱️ Modo Concentración (Pomodoro)",
+        btn_iniciar: "Iniciar",
+        btn_pausar: "Pausar",
+        btn_reiniciar: "Reiniciar",
+        btn_config_bloques: "⚙️ Configurar Bloques",
+        personalizar_duracion: "Personalizar Duración de Bloques",
+        guardar_config: "Guardar Configuración",
+        gestor_asignaturas_proyectos: "📚 Gestor de Asignaturas y Proyectos",
+        anadir: "Añadir",
+        agendar_proximo_evento: "📅 Agendar Próximo Evento / Examen",
+        guardar: "Guardar",
+        eventos_programados: "Eventos Programados",
+        registro_notas_calificaciones: "📊 Registro de Notas y Calificaciones",
+        registra_calificaciones_desc: "Registra tus calificaciones o avances para calcular tus promedios automáticamente y graficar tu evolución.",
+        grafico_evolucion_academica: "📈 Gráfico de Evolución Académica",
+        mis_hobbies_actividades: "🎨 Mis Hobbies y Actividades Libres",
+        dias_repeticion: "Días de repetición:",
+        anadir_hobby: "Añadir Hobby",
+        hobbies_registrados: "Hobbies Registrados",
+        config_control_sueno: "💤 Configuración del Control de Sueño",
+        horas_sueno_deseadas: "Horas de sueño deseadas:",
+        hora_dormir: "Hora de Dormir:",
+        hora_despertar: "Hora de Despertar:",
+        guardar_habitos: "Guardar Hábitos",
+        resumen_descanso: "🌙 Resumen de Descanso",
+        cargando_sueno: "Cargando datos de sueño...",
+        administrar_objetivos_diarios: "🎯 Administrar Objetivos Diarios",
+        anadir_objetivo: "Añadir Objetivo",
+        constancia_exito_mes: "📈 Constancia y Éxito del Mes",
+        registro_mensual: "Registro Mensual (Últimos 30 días)",
+        th_dia: "Día",
+        th_estado: "Estado",
+        anadir_apunte_nota: "📝 Añadir Apunte / Nota",
+        guardar_apunte: "Guardar Apunte",
+        buscar_apuntes: "🔍 Buscar Apuntes",
+        todas_categorias: "Todas las categorías",
+        sala_trofeos: "🏆 Sala de Trofeos RemindEd",
+        personalizar_apariencia: "🎨 Personalizar Apariencia y Tema",
+        alterna_modo_visualizacion: "Alterna el modo de visualización y personaliza los colores principales:",
+        modo_oscuro_claro: "Modo Oscuro / Claro",
+        alterna_apariencia_visual: "Alterna la apariencia visual.",
+        btn_cambiar_tema: "🌓 Cambiar Tema",
+        tema_morado: "💜 Morado RemindEd",
+        tema_azul: "💙 Azul Océano",
+        tema_verde: "💚 Verde Esmeralda",
+        tema_terracota: "🧡 Terracota / Cálido",
+        tema_rojo: "🔴 Rojo Carmín",
+        elige_color_personalizado: "O elige un color personalizado:",
+        idioma_aplicacion: "🌐 Idioma de la Aplicación",
+        selecciona_idioma_interfaz: "Selecciona el idioma con el que deseas ver la interfaz:",
+        cambiar_idioma: "Cambiar Idioma",
+        cambiar_nombre_usuario: "✏️ Cambiar Nombre de Usuario",
+        actualiza_nombre_saludo: "Actualiza cómo te saluda la aplicación:",
+        guardar_nombre: "Guardar Nombre",
+        cambiar_rol: "💼 Cambiar Rol (Estudiante / Trabajador)",
+        modifica_actividad_actual: "Modifica tu actividad principal actual:",
+        opt_estudiante: "🎓 Estudiante",
+        opt_trabajador: "💼 Trabajador",
+        guardar_rol: "Guardar Rol",
+        copia_seguridad_guias: "⚙️ Copia de Seguridad y Guías",
+        exportar_copia: "Exportar Copia de Seguridad",
+        restaurar_datos: "Restaurar Datos",
+        reactivar_guias: "🔄 Reactivar Guías Contextuales",
+        btn_omitir: "Omitir",
+        btn_entendido: "Entendido",
+        btn_continue: "Continuar →",
+        loading: "Cargando...",
+        loading_schedule: "Cargando horario...",
+        loading_sleep: "Cargando hábitos de descanso...",
+        placeholder_your_name: "Escribe tu nombre",
+        placeholder_nuevo_objetivo: "Nuevo objetivo laboral...",
+        placeholder_lugar_aula: "Lugar / Aula",
+        placeholder_nombre_asig: "Nombre (ej. Proyecto X / Historia)",
+        placeholder_meta_clave: "Nota o Meta clave",
+        placeholder_hobby: "Hobby o Deporte...",
+        placeholder_nuevo_objetivo_gral: "Nuevo objetivo...",
+        placeholder_titulo_nota: "Título...",
+        placeholder_contenido_nota: "Escribe aquí tu apunte o minuta de reunión...",
+        placeholder_buscar: "Buscar...",
+        placeholder_nuevo_nombre: "Escribe tu nuevo nombre"
+      },
+      pt: {
+        welcome_title: "Bem-vindo ao <span style='color: var(--primary);'>Remind<span style='color: var(--accent);'>Ed</span></span>!",
+        welcome_subtitle: "Vamos personalizar sua experiência.",
+        lbl_what_is_your_name: "Qual é o seu nome?",
+        lbl_what_do_you_do: "O que você faz atualmente?",
+        role_study: "Estudo",
+        role_studying: "Estou estudando",
+        role_work: "Trabalho",
+        role_working: "Estou trabalhando",
+        lbl_max_grade: "Qual é a nota máxima do seu sistema educacional?",
+        lbl_max_grade_help: "O RemindEd usará esta escala para adaptar seus gráficos e estatísticas.",
+        btn_start: "Começar com RemindEd 🚀",
+        menu_panel: "📌 Painel de Controle",
+        menu_pomodoro: "🍅 Modo Pomodoro",
+        menu_eventos: "📅 Eventos e Reuniões",
+        menu_hobbies: "🎨 Meus Hobbies",
+        menu_sueno: "💤 Controle de Sono",
+        menu_objetivos: "🎯 Meus Objetivos",
+        menu_notas: "📝 Notas e Apontamentos",
+        menu_trofeos: "🏆 Troféus e Conquistas",
+        menu_ajustes: "⚙️ Ajustes",
+        actividad_actual: "⚡ Atividade Atual",
+        llevas_transcurrido: "Tempo decorrido:",
+        proxima_actividad_en: "Próxima atividade em:",
+        proximo_evento_reunion: "📌 Próximo Evento / Reunião em Destaque",
+        no_hay_eventos: "Não há eventos ou reuniões próximas",
+        agendar_evento: "+ Agendar Evento",
+        objetivos_diarios_trabajo: "🎯 Objetivos Diários de Trabalho",
+        agregar: "Adicionar",
+        proximo_examen_cercano: "⏳ Próximo Exame Mais Próximo:",
+        proxima_clase_actividad: "🎓 Próxima Aula / Atividade",
+        objetivos_tareas_diarias: "🎯 Objetivos / Tarefas Diárias",
+        borde_cambia_verde: "A borda fica verde quando você completa suas tarefas diárias.",
+        proximos_examenes_destacados: "📅 Próximos Exames em Destaque",
+        estado_sueno: "🌙 Estado do Sono",
+        registrar_sueno: "Registrar Sono de Ontem",
+        horario_semanal_completo: "🗓️ Horário Semanal Completo",
+        anadir_horas_horario: "Adicionar Horas ao Horário",
+        dia_lunes: "Segunda-feira",
+        dia_martes: "Terça-feira",
+        dia_miercoles: "Quarta-feira",
+        dia_jueves: "Quinta-feira",
+        dia_viernes: "Sexta-feira",
+        dia_sabado: "Sábado",
+        dia_domingo: "Domingo",
+        desde: "De:",
+        hasta: "Até:",
+        guardar_bloque: "Salvar Bloco",
+        th_hora: "Hora",
+        modo_concentracion: "⏱️ Modo Concentração (Pomodoro)",
+        btn_iniciar: "Iniciar",
+        btn_pausar: "Pausar",
+        btn_reiniciar: "Reiniciar",
+        btn_config_bloques: "⚙️ Configurar Blocos",
+        personalizar_duracion: "Personalizar Duração dos Blocos",
+        guardar_config: "Salvar Configuração",
+        gestor_asignaturas_proyectos: "📚 Gerenciador de Matérias e Projetos",
+        anadir: "Adicionar",
+        agendar_proximo_evento: "📅 Agendar Próximo Evento / Exame",
+        guardar: "Salvar",
+        eventos_programados: "Eventos Programados",
+        registro_notas_calificaciones: "📊 Registro de Notas e Avaliações",
+        registra_calificaciones_desc: "Registre suas notas ou progresso para calcular médias automaticamente e ver sua evolução.",
+        grafico_evolucion_academica: "📈 Gráfico de Evolução Acadêmica",
+        mis_hobbies_actividades: "🎨 Meus Hobbies e Atividades Livres",
+        dias_repeticion: "Dias de repetição:",
+        anadir_hobby: "Adicionar Hobby",
+        hobbies_registrados: "Hobbies Registrados",
+        config_control_sueno: "💤 Configuração do Controle de Sono",
+        horas_sueno_deseadas: "Horas de sono desejadas:",
+        hora_dormir: "Hora de Dormir:",
+        hora_despertar: "Hora de Acordar:",
+        guardar_habitos: "Salvar Hábitos",
+        resumen_descanso: "🌙 Resumo de Descanso",
+        cargando_sueno: "Carregando dados de sono...",
+        administrar_objetivos_diarios: "🎯 Administrar Objetivos Diários",
+        anadir_objetivo: "Adicionar Objetivo",
+        constancia_exito_mes: "📈 Constância e Sucesso do Mês",
+        registro_mensual: "Registro Mensal (Últimos 30 dias)",
+        th_dia: "Dia",
+        th_estado: "Estado",
+        anadir_apunte_nota: "📝 Adicionar Nota / Apontamento",
+        guardar_apunte: "Salvar Nota",
+        buscar_apuntes: "🔍 Buscar Notas",
+        todas_categorias: "Todas as categorias",
+        sala_trofeos: "🏆 Sala de Troféus RemindEd",
+        personalizar_apariencia: "🎨 Personalizar Aparência e Tema",
+        alterna_modo_visualizacion: "Alterne o modo de visualização e personalize as cores principais:",
+        modo_oscuro_claro: "Modo Escuro / Claro",
+        alterna_apariencia_visual: "Alterne a aparência visual.",
+        btn_cambiar_tema: "🌓 Mudar Tema",
+        tema_morado: "💜 Roxo RemindEd",
+        tema_azul: "💙 Azul Oceano",
+        tema_verde: "💚 Verde Esmeralda",
+        tema_terracota: "🧡 Terracota / Quente",
+        tema_rojo: "🔴 Vermelho Carmim",
+        elige_color_personalizado: "Ou escolha uma cor personalizada:",
+        idioma_aplicacion: "🌐 Idioma do Aplicativo",
+        selecciona_idioma_interfaz: "Selecione o idioma em que deseja ver a interface:",
+        cambiar_idioma: "Mudar Idioma",
+        cambiar_nombre_usuario: "✏️ Alterar Nome de Usuário",
+        actualiza_nombre_saludo: "Atualize como o aplicativo te saúda:",
+        guardar_nombre: "Salvar Nome",
+        cambiar_rol: "💼 Alterar Função (Estudante / Trabalhador)",
+        modifica_actividad_actual: "Modifique sua principal atividade atual:",
+        opt_estudiante: "🎓 Estudante",
+        opt_trabajador: "💼 Trabalhador",
+        guardar_rol: "Salvar Função",
+        copia_seguridad_guias: "⚙️ Backup e Guias",
+        exportar_copia: "Exportar Backup",
+        restaurar_datos: "Restaurar Dados",
+        reactivar_guias: "🔄 Reativar Guias Contextuais",
+        btn_omitir: "Pular",
+        btn_entendido: "Entendido",
+        btn_continue: "Continuar →",
+        loading: "Carregando...",
+        loading_schedule: "Carregando horário...",
+        loading_sleep: "Carregando hábitos de descanso...",
+        placeholder_your_name: "Digite seu nome",
+        placeholder_nuevo_objetivo: "Novo objetivo de trabalho...",
+        placeholder_lugar_aula: "Local / Sala",
+        placeholder_nombre_asig: "Nome (ex. Projeto X / História)",
+        placeholder_meta_clave: "Nota ou Meta-chave",
+        placeholder_hobby: "Hobby ou Esporte...",
+        placeholder_nuevo_objetivo_gral: "Novo objetivo...",
+        placeholder_titulo_nota: "Título...",
+        placeholder_contenido_nota: "Escreva sua nota ou ata de reunião aqui...",
+        placeholder_buscar: "Buscar...",
+        placeholder_nuevo_nombre: "Digite seu novo nome"
+      }
+    };
+
+    let rolSeleccionado = null;
+    window.rolSeleccionado = null;
+    let idiomaGlobal = "en"; // Predeterminado inglés
+
+    function obtenerTutorialesConfig() {
+      const perfil = JSON.parse(localStorage.getItem("perfilUsuario"));
+      const esTrabajador = perfil && perfil.rol === 'trabajador';
+
+      if (esTrabajador) {
+        if (idiomaGlobal === 'es') {
+          return {
+            panel: [
+              { target: null, texto: "¡Bienvenido a tu Panel de Trabajo en RemindEd! Te guiaremos por tus herramientas activas." },
+              { target: "#card-actividad-actual", texto: "⚡ <strong>Actividad Actual</strong>: Sigue en tiempo real las tareas o reuniones que estás ejecutando según tu horario semanal." },
+              { target: "#card-proximo-evento", texto: "📌 <strong>Eventos y Reuniones</strong>: Mantén visibilidad completa de tus compromisos de trabajo próximos." },
+              { target: "#bloque-objetivos-trabajador", texto: "🎯 <strong>Objetivos Diarios</strong>: Marca tus hitos clave diarios para visualizar el porcentaje de avance." },
+              { target: "#card-estado-sueno", texto: "🌙 <strong>Estado del Sueño</strong>: Monitorea tus hábitos de descanso para un rendimiento laboral óptimo." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Horario Semanal: Planifica tus jornadas de trabajo y bloques libres de la semana.</strong>" }
+            ],
+            examenes: [{ target: "#card-gestion-materias", texto: "💼 <strong>Proyectos y Categorías</strong>: Administra tus distintas áreas profesionales o clientes." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Planifica tus hobbies para asegurar una vida balanceada fuera del trabajo." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Configura tus metas de sueño para un descanso reparador." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Configura y revisa la métrica de tus hábitos del mes." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Escribe minutas de reuniones y notas rápidas de trabajo." }]
+          };
+        } else if (idiomaGlobal === 'pt') {
+          return {
+            panel: [
+              { target: null, texto: "Bem-vindo ao seu Painel de Trabalho no RemindEd! Vamos guiá-lo pelas suas ferramentas ativas." },
+              { target: "#card-actividad-actual", texto: "⚡ <strong>Atividade Atual</strong>: Acompanhe em tempo real as tarefas ou reuniões de acordo com sua agenda." },
+              { target: "#card-proximo-evento", texto: "📌 <strong>Eventos e Reuniões</strong>: Mantenha visibilidade total dos seus próximos compromissos." },
+              { target: "#bloque-objetivos-trabajador", texto: "🎯 <strong>Objetivos Diários</strong>: Marque seus marcos principais para acompanhar o progresso." },
+              { target: "#card-estado-sueno", texto: "🌙 <strong>Estado do Sono</strong>: Monitore seus hábitos de descanso." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Horário Semanal: Planeje seus dias de trabalho e blocos livres.</strong>" }
+            ],
+            examenes: [{ target: "#card-gestion-materias", texto: "💼 <strong>Projetos e Categorias</strong>: Gerencie suas áreas profissionais." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Planeje seus hobbies para uma vida equilibrada." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Configure suas metas de sono." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Monitore seus hábitos do mês." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Escreva atas de reuniões e notas de trabalho." }]
+          };
+        } else {
+          return {
+            panel: [
+              { target: null, texto: "Welcome to your Work Panel in RemindEd! Let's guide you through your active tools." },
+              { target: "#card-actividad-actual", texto: "⚡ <strong>Current Activity</strong>: Track tasks or meetings in real time based on your weekly schedule." },
+              { target: "#card-proximo-evento", texto: "📌 <strong>Events & Meetings</strong>: Maintain full visibility of upcoming work commitments." },
+              { target: "#bloque-objetivos-trabajador", texto: "🎯 <strong>Daily Goals</strong>: Check off key daily milestones to visualize your progress." },
+              { target: "#card-estado-sueno", texto: "🌙 <strong>Sleep Status</strong>: Monitor your rest habits for optimal work performance." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Weekly Schedule: Plan your work shifts and free blocks for the week.</strong>" }
+            ],
+            examenes: [{ target: "#card-gestion-materias", texto: "💼 <strong>Projects & Categories</strong>: Manage your different professional areas or clients." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Plan your hobbies to ensure a balanced life outside of work." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Set your sleep goals for restorative rest." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Set up and review your month's habit metrics." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Write meeting minutes and quick work notes." }]
+          };
+        }
+      } else {
+        if (idiomaGlobal === 'es') {
+          return {
+            panel: [
+              { target: null, texto: "¡Bienvenido a RemindEd! Vamos a dar un vistazo rápido a tu Panel de Estudiante." },
+              { target: "#card-proxima-clase", texto: "🎓 Aquí verás tu próxima clase o hobby de la jornada." },
+              { target: "#card-objetivos-contenedor", texto: "🎯 Revisa y completa tus metas diarias para cambiar el borde a verde resplandeciente." },
+              { target: "#card-examenes-destacados", texto: "📅 Revisa tus próximos exámenes y cuentas regresivas." },
+              { target: "#card-estado-sueno", texto: "🌙 Registra tu descanso de la noche anterior." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Horario Semanal: Planifica tus clases y bloques libres de la semana.</strong>" }
+            ],
+            estudio: [{ target: ".timer-display", texto: "⏱️ <strong>Modo Pomodoro</strong>: Administra tus bloques de estudio." }],
+            examenes: [{ target: "#card-gestion-materias", texto: "📚 <strong>Asignaturas</strong>: Administra tus materias activas." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Añade actividades extracurriculares a tu agenda." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Define tus hábitos de descanso diario." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Monitorea tus hábitos académicos diarios." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Guarda y organiza tus apuntes de clase." }]
+          };
+        } else if (idiomaGlobal === 'pt') {
+          return {
+            panel: [
+              { target: null, texto: "Bem-vindo ao RemindEd! Vamos dar uma olhada rápida no seu Painel de Estudante." },
+              { target: "#card-proxima-clase", texto: "🎓 Aqui você verá sua próxima aula ou hobby." },
+              { target: "#card-objetivos-contenedor", texto: "🎯 Revise e complete suas metas diárias." },
+              { target: "#card-examenes-destacados", texto: "📅 Revise seus próximos exames e contagens regressivas." },
+              { target: "#card-estado-sueno", texto: "🌙 Registre seu descanso da noite anterior." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Horário Semanal: Planeje suas aulas e blocos livres.</strong>" }
+            ],
+            estudio: [{ target: ".timer-display", texto: "⏱️ <strong>Modo Pomodoro</strong>: Gerencie seus blocos de estudo." }],
+            examenes: [{ target: "#card-gestion-materias", texto: "📚 <strong>Matérias</strong>: Gerencie suas matérias ativas." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Adicione atividades extracurriculares." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Defina seus hábitos de descanso diário." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Monitore seus hábitos acadêmicos." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Salve e organize suas anotações de aula." }]
+          };
+        } else {
+          return {
+            panel: [
+              { target: null, texto: "Welcome to RemindEd! Let's take a quick look at your Student Panel." },
+              { target: "#card-proxima-clase", texto: "🎓 Here you will see your next class or hobby for the day." },
+              { target: "#card-objetivos-contenedor", texto: "🎯 Review and complete your daily goals to turn the border glowing green." },
+              { target: "#card-examenes-destacados", texto: "📅 Check your upcoming exams and countdowns." },
+              { target: "#card-estado-sueno", texto: "🌙 Record your rest from last night." },
+              { target: "#card-horario-semanal", texto: "🗓️ <strong>Weekly Schedule: Plan your classes and free blocks for the week.</strong>" }
+            ],
+            estudio: [{ target: ".timer-display", texto: "⏱️ <strong>Pomodoro Mode</strong>: Manage your study blocks to improve retention." }],
+            examenes: [{ target: "#card-gestion-materias", texto: "📚 <strong>Subjects</strong>: Manage your active subjects." }],
+            hobbies: [{ target: "#page-hobbies .card", texto: "🎨 Add extracurricular activities to your agenda." }],
+            sueno: [{ target: "#page-sueno .card:nth-of-type(1)", texto: "💤 Define your daily rest habits." }],
+            objetivos: [{ target: "#page-objetivos .card:nth-of-type(1)", texto: "🎯 Monitor your daily academic habits." }],
+            notas: [{ target: "#page-notas .card:nth-of-type(1)", texto: "📝 Save and organize your class notes." }]
+          };
+        }
+      }
+    }
+
+    function cambiarIdiomaDesdeTop(nuevoIdioma) {
+      idiomaGlobal = nuevoIdioma;
+      aplicarTraduccionesUI(nuevoIdioma);
+      
+      const perfilActual = JSON.parse(localStorage.getItem("perfilUsuario")) || {};
+      perfilActual.idioma = nuevoIdioma;
+      localStorage.setItem("perfilUsuario", JSON.stringify(perfilActual));
+
+      const selectAjustes = document.getElementById("ajustes-select-idioma");
+      if (selectAjustes) selectAjustes.value = nuevoIdioma;
+    }
+
+    function aplicarTraduccionesUI(lang) {
+      if (!i18n[lang]) return;
+      const dict = i18n[lang];
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (dict[key]) {
+          el.setAttribute("placeholder", dict[key]);
+        }
+      });
+
+      const topSelect = document.getElementById("top-select-idioma");
+      if (topSelect) topSelect.value = lang;
+
+      const ajustesSelect = document.getElementById("ajustes-select-idioma");
+      if (ajustesSelect) ajustesSelect.value = lang;
+    }
+
+    function onboardingContinuarNombre() {
+      const input = document.getElementById("onboarding-nombre");
+      if (!input) return;
+      const nombre = input.value.trim();
+      if (!nombre) {
+        alert(idiomaGlobal === 'es' ? "Por favor, escribe tu nombre antes de continuar." : idiomaGlobal === 'pt' ? "Por favor, digite seu nome antes de continuar." : "Please type your name before continuing.");
+        input.focus();
+        return;
+      }
+      window.nombreOnboarding = nombre;
+      document.getElementById("onboarding-paso-1").style.display = "none";
+      document.getElementById("onboarding-paso-2").style.display = "block";
+    }
+
+    function seleccionarRol(rol) {
+      rolSeleccionado = rol;
+      window.rolSeleccionado = rol;
+
+      const btnEst = document.getElementById("btn-rol-estudiante");
+      const btnTrab = document.getElementById("btn-rol-trabajador");
+
+      if (btnEst) {
+        btnEst.classList.toggle("selected", rol === "estudiante");
+        btnEst.setAttribute("aria-pressed", rol === "estudiante" ? "true" : "false");
+      }
+
+      if (btnTrab) {
+        btnTrab.classList.toggle("selected", rol === "trabajador");
+        btnTrab.setAttribute("aria-pressed", rol === "trabajador" ? "true" : "false");
+      }
+    }
+
+    function onboardingContinuarRol() {
+      if (!rolSeleccionado) {
+        alert(idiomaGlobal === 'es' ? "Selecciona si estudias o trabajas." : idiomaGlobal === 'pt' ? "Selecione se você estuda ou trabalha." : "Select whether you study or work.");
+        return;
+      }
+
+      if (rolSeleccionado === "trabajador") {
+        guardarPerfilInicial();
+        return;
+      }
+
+      document.getElementById("onboarding-paso-2").style.display = "none";
+      document.getElementById("onboarding-paso-3").style.display = "block";
+      document.getElementById("onboarding-nota-max").focus();
+    }
+
+    function obtenerConfigEscala() {
+      const perfil = JSON.parse(localStorage.getItem("perfilUsuario")) || {};
+      if (perfil.rol === "trabajador") {
+        return { min: 0, max: 100, paso: 1, label: idiomaGlobal === 'es' ? "Rendimiento (%)" : idiomaGlobal === 'pt' ? "Desempenho (%)" : "Performance (%)", metaEjemplo: "85" };
+      }
+      const maxima = parseFloat(perfil.notaMaxima) || 10;
+      return {
+        min: maxima <= 10 ? 1 : 0,
+        max: maxima,
+        paso: maxima <= 10 ? 0.1 : 1,
+        label: `${idiomaGlobal === 'es' ? 'Nota' : idiomaGlobal === 'pt' ? 'Nota' : 'Grade'} (1-${maxima})`,
+        metaEjemplo: (maxima * 0.9).toFixed(1)
+      };
+    }
+
+    function guardarPerfilInicial() {
+      const nombre = window.nombreOnboarding || document.getElementById("onboarding-nombre")?.value.trim();
+      const rol = rolSeleccionado || window.rolSeleccionado;
+
+      if (!nombre) {
+        alert(idiomaGlobal === 'es' ? "Por favor, escribe tu nombre." : idiomaGlobal === 'pt' ? "Por favor, digite seu nome." : "Please type your name.");
+        return;
+      }
+      if (!rol) {
+        alert(idiomaGlobal === 'es' ? "Selecciona si estudias o trabajas." : idiomaGlobal === 'pt' ? "Selecione se você estuda ou trabalha." : "Select whether you study or work.");
+        return;
+      }
+
+      let notaMaxima = 100;
+      if (rol === "estudiante") {
+        const input = document.getElementById("onboarding-nota-max");
+        const valor = parseFloat(input?.value);
+        if (!valor || valor <= 0) {
+          alert(idiomaGlobal === 'es' ? "Introduce una nota máxima válida." : idiomaGlobal === 'pt' ? "Insira uma nota máxima válida." : "Enter a valid maximum grade.");
+          input?.focus();
+          return;
+        }
+        notaMaxima = valor;
+      }
+
+      const perfil = { nombre, rol, notaMaxima, idioma: idiomaGlobal };
+      localStorage.setItem("perfilUsuario", JSON.stringify(perfil));
+
+      const pantalla = document.getElementById("pantalla-bienvenida");
+      const app = document.getElementById("app-principal");
+      if (pantalla) pantalla.style.display = "none";
+      if (app) app.style.display = "block";
+
+      cargarInterfazSegunRol();
+      aplicarTraduccionesUI(idiomaGlobal);
+    }
+
+    function cargarAsignaturasYNotas() {
+      const notasGuardadas = JSON.parse(localStorage.getItem("notasAsignaturas")) || {};
+      const metasGuardadas = JSON.parse(localStorage.getItem("metasAsignaturas")) || {};
+      const contenedor = document.getElementById("contenedor-asignaturas");
+      if (!contenedor) return;
+      contenedor.innerHTML = "";
+
+      const escala = obtenerConfigEscala();
+
+      obtenerAsignaturas().forEach((asig) => {
+        const datosAsig = notasGuardadas[asig] || { lista: [], metaFinal: metasGuardadas[asig] || "" };
+        const listaNotas = Array.isArray(datosAsig) ? datosAsig : (datosAsig.lista || []);
+        const metaFinalVal = !Array.isArray(datosAsig) && datosAsig.metaFinal ? datosAsig.metaFinal : (metasGuardadas[asig] || "");
+
+        const suma = listaNotas.reduce((a, b) => a + b, 0);
+        const promedioNum = listaNotas.length > 0 ? (suma / listaNotas.length) : null;
+        const promedioStr = promedioNum !== null ? promedioNum.toFixed(1) : "-";
+
+        let notasItemsHTML = "";
+        listaNotas.forEach((n, idx) => {
+          notasItemsHTML += `<span style="display:inline-block; background:var(--card-bg); border:1px solid var(--border-color); padding:3px 8px; border-radius:8px; margin-right:6px; margin-bottom:6px; font-weight:500;">${n} <button onclick="quitarNotaAsignatura('${asig}', ${idx})" style="background:none; border:none; color:var(--danger); font-weight:700; cursor:pointer;">×</button></span>`;
+        });
+
+        const div = document.createElement("div");
+        div.className = "materia-card";
+        div.innerHTML = `
+          <div>
+            <strong>${asig}</strong>
+            <span class="promedio-tag">${idiomaGlobal === 'es' ? 'Promedio' : idiomaGlobal === 'pt' ? 'Média' : 'Average'}: ${promedioStr} / ${escala.max}</span>
+          </div>
+          <div style="margin-top: 10px;" class="form-group">
+            <input type="number" step="${escala.paso}" min="${escala.min}" max="${escala.max}" placeholder="${escala.label}" id="input-nota-${asig}" class="input-form" style="width: 130px;" />
+            <button onclick="agregarNota('${asig}')" class="btn-action">${idiomaGlobal === 'es' ? 'Guardar Registro' : idiomaGlobal === 'pt' ? 'Salvar Registro' : 'Save Record'}</button>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+              <span style="font-size:0.85rem; font-weight:600;">🎯 ${idiomaGlobal === 'es' ? 'Meta Objetivo' : idiomaGlobal === 'pt' ? 'Meta Alvo' : 'Target Goal'}:</span>
+              <input type="number" step="${escala.paso}" min="${escala.min}" max="${escala.max}" placeholder="Ex. ${escala.metaEjemplo}" id="input-meta-${asig}" class="input-form" value="${metaFinalVal}" style="width: 90px;" onchange="guardarMetaAsignatura('${asig}')" />
+            </div>
+          </div>
+          <div style="font-size: 0.9rem; color: #64748b; margin-top:8px;">
+            <strong>${idiomaGlobal === 'es' ? 'Registros guardados:' : idiomaGlobal === 'pt' ? 'Registros salvos:' : 'Saved records:'}</strong> ${listaNotas.length > 0 ? notasItemsHTML : (idiomaGlobal === 'es' ? 'Sin datos guardados' : idiomaGlobal === 'pt' ? 'Sem dados salvos' : 'No data saved')}
+          </div>
+        `;
+        contenedor.appendChild(div);
+      });
+
+      renderizarGraficoNotas();
+    }
+
+    function renderizarGraficoNotas() {
+      const ctx = document.getElementById("chart-notas");
+      if (!ctx || typeof Chart === "undefined") return;
+
+      const asignaturas = obtenerAsignaturas();
+      const notasGuardadas = JSON.parse(localStorage.getItem("notasAsignaturas")) || {};
+      const escala = obtenerConfigEscala();
+
+      const labels = asignaturas;
+      const dataPromedios = asignaturas.map(asig => {
+        const datos = notasGuardadas[asig];
+        const lista = Array.isArray(datos) ? datos : (datos ? datos.lista || [] : []);
+        if (lista.length === 0) return 0;
+        const suma = lista.reduce((a, b) => a + Number(b), 0);
+        return parseFloat((suma / lista.length).toFixed(1));
+      });
+
+      if (window.chartInstance) {
+        window.chartInstance.destroy();
+      }
+
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#6c5ce7';
+
+      window.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${idiomaGlobal === 'es' ? 'Promedio / Rendimiento Actual' : idiomaGlobal === 'pt' ? 'Média / Desempenho Atual' : 'Average / Current Performance'} (${escala.label})`,
+            data: dataPromedios,
+            backgroundColor: primaryColor + 'a6',
+            borderColor: primaryColor,
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0,
+              max: escala.max,
+              ticks: {
+                stepSize: escala.max <= 10 ? 1 : (escala.max <= 20 ? 2 : 10)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    const MATERIAS_PREDETERMINADAS = ["Mathematics", "Portuguese", "English", "Physical Education", "Philosophy"];
+    const PROYECTOS_PREDETERMINADOS = ["Project A", "Meetings", "Administration", "Training"];
+
+    let userTasks = [];
+    let workerTimerInterval = null;
+    let chartInstance = null;
+
+    function alternarTema() {
+      document.body.classList.toggle("dark-mode");
+      const esOscuro = document.body.classList.contains("dark-mode");
+      localStorage.setItem("modoOscuroActivo", esOscuro ? "true" : "false");
+    }
+
+    function cargarModoOscuroGuardado() {
+      const oscuroGuardado = localStorage.getItem("modoOscuroActivo");
+      if (oscuroGuardado === "true") {
+        document.body.classList.add("dark-mode");
+      } else if (oscuroGuardado === "false") {
+        document.body.classList.remove("dark-mode");
+      } else {
+        aplicarModoOscuroAuto();
+      }
+    }
+
+    function cambiarColorTema(primaryColor, accentColor) {
+      document.documentElement.style.setProperty('--primary', primaryColor);
+      if (accentColor) {
+        document.documentElement.style.setProperty('--accent', accentColor);
+      }
+      localStorage.setItem("themePrimaryColor", primaryColor);
+      if (accentColor) localStorage.setItem("themeAccentColor", accentColor);
+      
+      const picker = document.getElementById("picker-color-primary");
+      if (picker) picker.value = primaryColor;
+      if (chartInstance) renderizarGraficoNotas();
+    }
+
+    function aplicarColorPersonalizado(colorHex) {
+      cambiarColorTema(colorHex, null);
+    }
+
+    function cargarColorGuardado() {
+      const colorGuardado = localStorage.getItem("themePrimaryColor");
+      const accentGuardado = localStorage.getItem("themeAccentColor");
+      if (colorGuardado) {
+        document.documentElement.style.setProperty('--primary', colorGuardado);
+        const picker = document.getElementById("picker-color-primary");
+        if (picker) picker.value = colorGuardado;
+      }
+      if (accentGuardado) {
+        document.documentElement.style.setProperty('--accent', accentGuardado);
+      }
+    }
+
+    function reproducirEfectoSonido(tipo = 'trofeo') {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const audioCtx = new AudioContext();
+
+        if (tipo === 'trofeo') {
+          const notas = [523.25, 659.25, 783.99, 1046.50];
+          notas.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            const tiempo = audioCtx.currentTime + (i * 0.08);
+            gain.gain.setValueAtTime(0.15, tiempo);
+            gain.gain.exponentialRampToValueAtTime(0.001, tiempo + 0.25);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(tiempo);
+            osc.stop(tiempo + 0.25);
+          });
+        }
+      } catch (e) {
+        console.log("Audio not enabled.");
+      }
+    }
+
+    function mostrarNotificacionTrofeo(nombre) {
+      const popup = document.getElementById("trophy-popup");
+      const desc = document.getElementById("trophy-popup-desc");
+      if (!popup || !desc) return;
+
+      desc.innerText = nombre;
+      popup.classList.remove("hidden");
+      reproducirEfectoSonido('trofeo');
+
+      setTimeout(() => {
+        popup.classList.add("hidden");
+      }, 3500);
+    }
+
+    function obtenerAsignaturas() {
+      const perfil = JSON.parse(localStorage.getItem("perfilUsuario"));
+      const esTrabajador = perfil && perfil.rol === 'trabajador';
+      const defecto = esTrabajador ? PROYECTOS_PREDETERMINADOS : MATERIAS_PREDETERMINADAS;
+      
+      const asignaturas = localStorage.getItem("misAsignaturasPersonalizadas");
+      if (!asignaturas) {
+        localStorage.setItem("misAsignaturasPersonalizadas", JSON.stringify(defecto));
+        return defecto;
+      }
+      return JSON.parse(asignaturas);
+    }
+
+    function guardarAsignaturasLista(lista) {
+      localStorage.setItem("misAsignaturasPersonalizadas", JSON.stringify(lista));
+    }
+
+    function agregarNuevaAsignatura() {
+      const input = document.getElementById("nueva-asignatura-nombre");
+      const nombre = input ? input.value.trim() : "";
+      if (nombre !== "") {
+        const lista = obtenerAsignaturas();
+        if (!lista.includes(nombre)) {
+          lista.push(nombre);
+          guardarAsignaturasLista(lista);
+          input.value = "";
+          inicializarExamenesYNotas();
+          evaluarTrofeos();
+        } else {
+          alert(idiomaGlobal === 'es' ? "Ya existe este elemento." : idiomaGlobal === 'pt' ? "Este elemento já existe." : "This item already exists.");
+        }
+      }
+    }
+
+    function borrarAsignatura(nombre) {
+      let lista = obtenerAsignaturas();
+      lista = lista.filter(a => a !== nombre);
+      guardarAsignaturasLista(lista);
+      
+      let horario = JSON.parse(localStorage.getItem("horarioPersonalizado")) || {};
+      Object.keys(horario).forEach(dia => {
+        horario[dia] = horario[dia].filter(h => h.asignatura !== nombre);
+      });
+      localStorage.setItem("horarioPersonalizado", JSON.stringify(horario));
+      
+      inicializarExamenesYNotas();
+    }
+
+    function renderizarGestorAsignaturas() {
+      const lista = obtenerAsignaturas();
+      const cont = document.getElementById("lista-gestion-asignaturas");
+      if (!cont) return;
+      cont.innerHTML = "";
+      
+      if (lista.length === 0) {
+        cont.innerHTML = `<p style='color:#64748b;'>${idiomaGlobal === 'es' ? 'No hay registros creados.' : idiomaGlobal === 'pt' ? 'Nenhum registro criado.' : 'No records created.'}</p>`;
+        return;
+      }
+
+      lista.forEach(asig => {
+        const div = document.createElement("div");
+        div.className = "item-list";
+        div.innerHTML = `<span>📖 <strong>${asig}</strong></span> <button class="btn-del" onclick="borrarAsignatura('${asig}')">${idiomaGlobal === 'es' ? 'Eliminar' : idiomaGlobal === 'pt' ? 'Excluir' : 'Delete'}</button>`;
+        cont.appendChild(div);
+      });
+    }
+
+    function inicializarExamenesYNotas() {
+      const select = document.getElementById("examen-materia-select");
+      const notaSel = document.getElementById("nota-asig-select");
+      const filtroSel = document.getElementById("filtro-asig");
+      const horarioSel = document.getElementById("horario-materia-select");
+      
+      if (select) select.innerHTML = ""; 
+      if (notaSel) notaSel.innerHTML = "";
+      if (filtroSel) filtroSel.innerHTML = `<option value="TODAS">${idiomaGlobal === 'es' ? 'Todas las categorías' : idiomaGlobal === 'pt' ? 'Todas as categorias' : 'All categories'}</option>`;
+      if (horarioSel) horarioSel.innerHTML = "";
+
+      obtenerAsignaturas().forEach(asig => {
+        if (select) select.add(new Option(asig, asig));
+        if (notaSel) notaSel.add(new Option(asig, asig));
+        if (filtroSel) filtroSel.add(new Option(asig, asig));
+        if (horarioSel) horarioSel.add(new Option(asig, asig));
+      });
+
+      renderizarGestorAsignaturas();
+      cargarExamenes();
+      cargarAsignaturasYNotas();
+      cargarApuntes();
+      renderizarHorarioTabla();
+    }
+
+    function agregarHorarioBloque() {
+      const dia = document.getElementById("horario-dia-select").value;
+      const hInicio = document.getElementById("horario-inicio-time").value;
+      const hFin = document.getElementById("horario-fin-time").value;
+      const materia = document.getElementById("horario-materia-select").value;
+      const aula = document.getElementById("horario-aula-input").value.trim();
+
+      if (hInicio && hFin && materia) {
+        const horaTexto = `${hInicio}-${hFin}`;
+        const horario = JSON.parse(localStorage.getItem("horarioPersonalizado")) || { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
+        if (!horario[dia]) horario[dia] = [];
+        
+        horario[dia].push({ inicio: horaTexto, hInicio: hInicio, hFin: hFin, asignatura: materia, sala: aula, horaSola: hInicio });
+        localStorage.setItem("horarioPersonalizado", JSON.stringify(horario));
+        
+        document.getElementById("horario-aula-input").value = "";
+        renderizarHorarioTabla();
+        actualizarPanel();
+      } else {
+        alert(idiomaGlobal === 'es' ? "Por favor completa las horas e indica una categoría." : idiomaGlobal === 'pt' ? "Por favor, preencha os horários e selecione uma categoria." : "Please complete the times and select a category.");
+      }
+    }
+
+    function normalizarHoraParaOrdenar(horaStr) {
+      if (!horaStr) return "00:00";
+      let baseHora = horaStr.split("-")[0].trim();
+      if (baseHora.length === 4 && baseHora.includes(":")) {
+        baseHora = "0" + baseHora;
+      }
+      return baseHora;
+    }
+
+    function renderizarHorarioTabla() {
+      const horario = JSON.parse(localStorage.getItem("horarioPersonalizado")) || { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+      const tbody = document.getElementById("tabla-horario-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      let horarioCombinado = JSON.parse(JSON.stringify(horario));
+      
+      hobbies.forEach(hb => {
+        if (!horarioCombinado[hb.dia]) horarioCombinado[hb.dia] = [];
+        horarioCombinado[hb.dia].push({ inicio: hb.hora, asignatura: `🎨 ${hb.nombre}`, sala: "Hobby" });
+      });
+
+      let horasSet = new Set();
+      Object.keys(horarioCombinado).forEach(d => {
+        horarioCombinado[d].forEach(item => horasSet.add(item.inicio));
+      });
+
+      const horasOrdenadas = Array.from(horasSet).sort((a, b) => {
+        return normalizarHoraParaOrdenar(a).localeCompare(normalizarHoraParaOrdenar(b));
+      });
+
+      if (horasOrdenadas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#64748b;">${idiomaGlobal === 'es' ? 'No hay horarios programados aún.' : idiomaGlobal === 'pt' ? 'Nenhum horário programado ainda.' : 'No schedules programmed yet.'}</td></tr>`;
+        return;
+      }
+
+      const mapaDias = [1, 2, 3, 4, 5, 6, 0];
+      horasOrdenadas.forEach(h => {
+        const tr = document.createElement("tr");
+        let html = `<td><strong>${h}</strong></td>`;
+        mapaDias.forEach(d => {
+          const item = (horarioCombinado[d] || []).find(i => i.inicio === h);
+          if (item) {
+            html += `<td>${item.asignatura} ${item.sala && item.sala !== "Hobby" ? '(' + item.sala + ')' : ''}</td>`;
+          } else {
+            html += `<td>-</td>`;
+          }
+        });
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function aplicarModoOscuroAuto() {
+      const hora = new Date().getHours();
+      if (hora >= 20 || hora < 6) document.body.classList.add("dark-mode");
+      else document.body.classList.remove("dark-mode");
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById("nav-menu");
+      if (!menu) return;
+
+      const isOpen = getComputedStyle(menu).display !== "none";
+      if (isOpen) {
+        menu.style.setProperty("display", "none", "important");
+        menu.setAttribute("aria-hidden", "true");
+      } else {
+        menu.style.setProperty("display", "block", "important");
+        menu.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    let seccionActualTutorial = null;
+    let pasoTutorialActual = 0;
+
+    function navegarA(pagina) {
+      document.querySelectorAll(".section-page").forEach(p => p.classList.remove("section-active"));
+      
+      const mapaPaginas = {
+        'panel': 'page-panel',
+        'estudio': 'page-estudio',
+        'examenes': 'page-examenes',
+        'hobbies': 'page-hobbies',
+        'sueno': 'page-sueno',
+        'objetivos': 'page-objetivos',
+        'notas': 'page-notas',
+        'trofeos': 'page-trofeos',
+        'ajustes': 'page-ajustes'
+      };
+
+      if (mapaPaginas[pagina]) {
+        document.getElementById(mapaPaginas[pagina]).classList.add("section-active");
+      }
+      
+      if (pagina === 'trofeos') evaluarTrofeos();
+      if (pagina === 'sueno') cargarControlSueno();
+      if (pagina === 'examenes') renderizarGraficoNotas();
+      
+      const menu = document.getElementById("nav-menu");
+      if (menu) {
+        menu.style.setProperty("display", "none", "important");
+        menu.setAttribute("aria-hidden", "true");
+      }
+
+      comprobarTutorialSeccion(pagina);
+    }
+
+    function comprobarTutorialSeccion(seccion) {
+      const vistos = JSON.parse(localStorage.getItem("tutorialesVistos")) || {};
+      const tuts = obtenerTutorialesConfig();
+
+      if (!vistos[seccion] && tuts[seccion]) {
+        seccionActualTutorial = seccion;
+        pasoTutorialActual = 0;
+        lanzarTutorialModulo();
+      }
+    }
+
+    function lanzarTutorialModulo() {
+      const overlay = document.getElementById('tutorial-overlay');
+      const card = document.getElementById('tutorial-card');
+      
+      if (overlay) overlay.classList.remove('hidden');
+      if (card) card.classList.remove('hidden');
+      
+      mostrarPasoModulo();
+    }
+
+    function mostrarPasoModulo() {
+      const tuts = obtenerTutorialesConfig();
+      const pasos = tuts[seccionActualTutorial];
+      if (!pasos || !pasos[pasoTutorialActual]) return;
+
+      const paso = pasos[pasoTutorialActual];
+      
+      document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+      
+      const textEl = document.getElementById('tutorial-text');
+      const btnEl = document.getElementById('tutorial-btn-next');
+      
+      if (textEl) textEl.innerHTML = paso.texto;
+      if (btnEl) {
+        btnEl.innerText = (pasoTutorialActual === pasos.length - 1) ? (idiomaGlobal === 'es' ? "¡Entendido!" : idiomaGlobal === 'pt' ? "Entendido!" : "Got it!") : (idiomaGlobal === 'es' ? "Siguiente" : idiomaGlobal === 'pt' ? "Próximo" : "Next");
+      }
+
+      if (paso.target) {
+        const elTarget = document.querySelector(paso.target);
+        if (elTarget) {
+          elTarget.classList.add('tutorial-highlight');
+          elTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    function siguientePaso() {
+      const tuts = obtenerTutorialesConfig();
+      const pasos = tuts[seccionActualTutorial];
+      pasoTutorialActual++;
+      
+      if (pasos && pasoTutorialActual < pasos.length) {
+        mostrarPasoModulo();
+      } else {
+        cerrarTutorialModulo();
+      }
+    }
+
+    function cerrarTutorialModulo() {
+      const overlay = document.getElementById('tutorial-overlay');
+      const card = document.getElementById('tutorial-card');
+      
+      if (overlay) overlay.classList.add('hidden');
+      if (card) card.classList.add('hidden');
+      
+      document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+      
+      const vistos = JSON.parse(localStorage.getItem("tutorialesVistos")) || {};
+      vistos[seccionActualTutorial] = true;
+      localStorage.setItem("tutorialesVistos", JSON.stringify(vistos));
+    }
+
+    function reiniciarTutoriales() {
+      cerrarTutorialModulo();
+      localStorage.removeItem("tutorialesVistos");
+      alert(idiomaGlobal === 'es' ? "¡Guías restablecidas con éxito!" : idiomaGlobal === 'pt' ? "Guias redefinidas com sucesso!" : "Guides successfully reset!");
+      navegarA("panel");
+    }
+
+    function cargarInterfazSegunRol() {
+      const perfil = JSON.parse(localStorage.getItem("perfilUsuario"));
+      if (!perfil) return;
+
+      document.getElementById("pantalla-bienvenida").style.display = "none";
+      document.getElementById("app-principal").style.display = "block";
+
+      if (perfil.idioma) {
+        idiomaGlobal = perfil.idioma;
+        aplicarTraduccionesUI(perfil.idioma);
+      }
+
+      const header = document.getElementById("greeting-header");
+      if (header) {
+        header.innerHTML = `Remind<span>Ed</span> — ${perfil.nombre}`;
+      }
+
+      const esTrabajador = perfil.rol === 'trabajador';
+
+      const bTrabajador = document.getElementById("bloques-trabajador");
+      const bObjTrabajador = document.getElementById("bloque-objetivos-trabajador");
+      const cProximaClase = document.getElementById("card-proxima-clase");
+      const cExamenes = document.getElementById("card-examenes-destacados");
+      const cObjetivosEstudiante = document.getElementById("card-objetivos-contenedor");
+      const menuEventos = document.getElementById("menu-eventos");
+      const menuEstudio = document.getElementById("menu-estudio");
+      
+      const cGraficoNotas = document.getElementById("card-grafico-notas");
+      const tProxAct = document.getElementById("titulo-proxima-actividad");
+      const tBloqEv = document.getElementById("titulo-bloque-eventos");
+      const tMatGestor = document.getElementById("titulo-materia-gestor");
+      const tAgendarEv = document.getElementById("titulo-agendar-evento");
+      const tRendimientoNotas = document.getElementById("titulo-rendimiento-notas");
+      const tGraficoDesempeno = document.getElementById("titulo-grafico-desempeno");
+
+      if (esTrabajador) {
+        if(bTrabajador) bTrabajador.style.display = "flex";
+        if(bObjTrabajador) bObjTrabajador.style.display = "block";
+        if(cProximaClase) cProximaClase.style.display = "none";
+        if(cExamenes) cExamenes.style.display = "none";
+        if(cObjetivosEstudiante) cObjetivosEstudiante.style.display = "none";
+        if(cGraficoNotas) cGraficoNotas.style.display = "block";
+        if(menuEstudio) menuEstudio.style.display = "none";
+
+        if(menuEventos) menuEventos.innerText = idiomaGlobal === 'es' ? "📅 Eventos y Reuniones" : idiomaGlobal === 'pt' ? "📅 Eventos e Reuniões" : "📅 Events & Meetings";
+        if(tMatGestor) tMatGestor.innerText = idiomaGlobal === 'es' ? "💼 Gestor de Proyectos / Áreas" : idiomaGlobal === 'pt' ? "💼 Gerenciador de Projetos / Áreas" : "💼 Projects & Areas Manager";
+        if(tAgendarEv) tAgendarEv.innerText = idiomaGlobal === 'es' ? "📅 Agendar Evento o Reunión" : idiomaGlobal === 'pt' ? "📅 Agendar Evento ou Reunião" : "📅 Schedule Event or Meeting";
+        if(tRendimientoNotas) tRendimientoNotas.innerText = idiomaGlobal === 'es' ? "📊 Métricas y Objetivos del Proyecto" : idiomaGlobal === 'pt' ? "📊 Métricas e Objetivos do Projeto" : "📊 Project Metrics & Goals";
+        if(tGraficoDesempeno) tGraficoDesempeno.innerText = idiomaGlobal === 'es' ? "📈 Gráfico de Desempeño Laboral" : idiomaGlobal === 'pt' ? "📈 Gráfico de Desempenho de Trabalho" : "📈 Work Performance Chart";
+
+        iniciarTimerTrabajadorAutomatico();
+      } else {
+        if(bTrabajador) bTrabajador.style.display = "none";
+        if(bObjTrabajador) bObjTrabajador.style.display = "none";
+        if(cProximaClase) cProximaClase.style.display = "block";
+        if(cExamenes) cExamenes.style.display = "block";
+        if(cObjetivosEstudiante) cObjetivosEstudiante.style.display = "block";
+        if(cGraficoNotas) cGraficoNotas.style.display = "block";
+        if(menuEstudio) menuEstudio.style.display = "block";
+
+        if(menuEventos) menuEventos.innerText = idiomaGlobal === 'es' ? "📅 Eventos y Exámenes" : idiomaGlobal === 'pt' ? "📅 Eventos e Exames" : "📅 Events & Exams";
+        if(tProxAct) tProxAct.innerText = idiomaGlobal === 'es' ? "🎓 Próxima Clase / Actividad" : idiomaGlobal === 'pt' ? "🎓 Próxima Aula / Atividade" : "🎓 Next Class / Activity";
+        if(tBloqEv) tBloqEv.innerText = idiomaGlobal === 'es' ? "📅 Próximos Exámenes Destacados" : idiomaGlobal === 'pt' ? "📅 Próximos Exámenes em Destaque" : "📅 Upcoming Featured Exams";
+        if(tMatGestor) tMatGestor.innerText = idiomaGlobal === 'es' ? "📚 Gestor de Asignaturas" : idiomaGlobal === 'pt' ? "📚 Gerenciador de Matérias" : "📚 Subjects Manager";
+        if(tAgendarEv) tAgendarEv.innerText = idiomaGlobal === 'es' ? "📅 Añadir Próximo Exame" : idiomaGlobal === 'pt' ? "📅 Adicionar Próximo Exame" : "📅 Add Upcoming Exam";
+        if(tRendimientoNotas) tRendimientoNotas.innerText = idiomaGlobal === 'es' ? "📊 Registro de Notas y Calificaciones" : idiomaGlobal === 'pt' ? "📊 Registro de Notas e Avaliações" : "📊 Grades & Ratings Record";
+        if(tGraficoDesempeno) tGraficoDesempeno.innerText = idiomaGlobal === 'es' ? "📈 Gráfico de Evolución Académica" : idiomaGlobal === 'pt' ? "📈 Gráfico de Evolução Acadêmica" : "📈 Academic Evolution Chart";
+
+        if (workerTimerInterval) clearInterval(workerTimerInterval);
+      }
+
+      inicializarExamenesYNotas();
+      comprobarTutorialSeccion('panel');
+    }
+
+    function iniciarTimerTrabajadorAutomatico() {
+      if (workerTimerInterval) clearInterval(workerTimerInterval);
+
+      actualizarTiempoTrabajador();
+      workerTimerInterval = setInterval(actualizarTiempoTrabajador, 1000);
+    }
+
+    function actualizarTiempoTrabajador() {
+      const ahora = new Date();
+      const diaSemana = ahora.getDay();
+      const horario = JSON.parse(localStorage.getItem("horarioPersonalizado")) || {};
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+      
+      let actividadesHoy = [];
+
+      if (horario[diaSemana]) {
+        horario[diaSemana].forEach(item => {
+          let hI = item.hInicio || item.inicio.split("-")[0];
+          let hF = item.hFin || item.inicio.split("-")[1];
+          if (hI && hF) {
+            actividadesHoy.push({
+              nombre: item.asignatura,
+              inicioStr: hI.trim(),
+              finStr: hF.trim(),
+              lugar: item.sala
+            });
+          }
+        });
+      }
+
+      hobbies.filter(h => h.dia === diaSemana).forEach(h => {
+        let finH = String(parseInt(h.hora.split(":")[0]) + 1).padStart(2, '0') + ":" + h.hora.split(":")[1];
+        actividadesHoy.push({
+          nombre: `🎨 ${h.nombre}`,
+          inicioStr: h.hora,
+          finStr: finH,
+          lugar: "Hobby"
+        });
+      });
+
+      const convertirAFecha = (horaStr) => {
+        const [hh, mm] = horaStr.split(":").map(Number);
+        const f = new Date(ahora);
+        f.setHours(hh, mm, 0, 0);
+        return f;
+      };
+
+      let actividadEnCurso = null;
+      let proximaActividad = null;
+
+      actividadesHoy.sort((a,b) => convertirAFecha(a.inicioStr) - convertirAFecha(b.inicioStr));
+
+      for (let act of actividadesHoy) {
+        const fInicio = convertirAFecha(act.inicioStr);
+        const fFin = convertirAFecha(act.finStr);
+
+        if (ahora >= fInicio && ahora < fFin) {
+          actividadEnCurso = { ...act, fInicio, fFin };
+        } else if (ahora < fInicio && !proximaActividad) {
+          proximaActividad = { ...act, fInicio, fFin };
+        }
+      }
+
+      const elNombreAct = document.getElementById("current-activity");
+      const elElapsed = document.getElementById("worker-time-elapsed");
+      const elRemaining = document.getElementById("worker-time-remaining");
+      const elNextInfo = document.getElementById("worker-next-info");
+
+      const formatDiff = (ms) => {
+        if (ms < 0) ms = 0;
+        const totSec = Math.floor(ms / 1000);
+        const hh = String(Math.floor(totSec / 3600)).padStart(2, '0');
+        const mm = String(Math.floor((totSec % 3600) / 60)).padStart(2, '0');
+        const ss = String(totSec % 60).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+      };
+
+      if (actividadEnCurso) {
+        if (elNombreAct) elNombreAct.innerText = `💼 ${actividadEnCurso.nombre} ${actividadEnCurso.lugar ? '(' + actividadEnCurso.lugar + ')' : ''}`;
+        
+        const transcurrido = ahora - actividadEnCurso.fInicio;
+        const faltante = actividadEnCurso.fFin - ahora;
+
+        if (elElapsed) elElapsed.innerText = formatDiff(transcurrido);
+        if (elRemaining) elRemaining.innerText = formatDiff(faltante);
+        if (elNextInfo) elNextInfo.innerHTML = `${idiomaGlobal === 'es' ? 'Falta para terminar:' : idiomaGlobal === 'pt' ? 'Tempo restante:' : 'Time remaining:'} <span id="worker-time-remaining" style="font-weight:700; color:var(--warning);">${formatDiff(faltante)}</span>`;
+      } else {
+        if (elNombreAct) elNombreAct.innerText = idiomaGlobal === 'es' ? "Sin actividad laboral activa en este momento" : idiomaGlobal === 'pt' ? "Sem atividade de trabalho ativa no momento" : "No active work activity at this moment";
+        if (elElapsed) elElapsed.innerText = "--:--:--";
+
+        if (proximaActividad) {
+          const faltante = proximaActividad.fInicio - ahora;
+          if (elNextInfo) elNextInfo.innerHTML = `${idiomaGlobal === 'es' ? 'Próxima actividad' : idiomaGlobal === 'pt' ? 'Próxima atividade' : 'Next activity'} (<strong>${proximaActividad.nombre}</strong>) in: <span id="worker-time-remaining" style="font-weight:700; color:var(--warning);">${formatDiff(faltante)}</span>`;
+        } else {
+          if (elNextInfo) elNextInfo.innerHTML = `<span style="color:var(--success); font-weight:600;">${idiomaGlobal === 'es' ? '¡Libre por el resto del día! 🎉' : idiomaGlobal === 'pt' ? 'Livre pelo resto do dia! 🎉' : 'Free for the rest of the day! 🎉'}</span>`;
+        }
+      }
+    }
+
+    function cargarObjetivos() {
+      const guardados = JSON.parse(localStorage.getItem("misObjetivos")) || [];
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const estados = JSON.parse(localStorage.getItem("estadosObjetivos")) || {};
+      
+      if (!estados[fechaHoy]) estados[fechaHoy] = {};
+
+      const contDiario = document.getElementById("lista-objetivos-diarios");
+      const contAdmin = document.getElementById("lista-objetivos-admin");
+      const cardContenedor = document.getElementById("card-objetivos-contenedor");
+      
+      if(contDiario) contDiario.innerHTML = "";
+      if(contAdmin) contAdmin.innerHTML = "";
+
+      let totalTareas = guardados.length;
+      let tareasCompletadas = 0;
+
+      if (totalTareas === 0) {
+        if(contDiario) contDiario.innerHTML = `<p style='color:#64748b;'>${idiomaGlobal === 'es' ? 'Añade tareas en tus objetivos.' : idiomaGlobal === 'pt' ? 'Adicione tarefas nos seus objetivos.' : 'Add tasks in your goals.'}</p>`;
+        if(contAdmin) contAdmin.innerHTML = `<p style='color:#64748b;'>${idiomaGlobal === 'es' ? 'Sin tareas cargadas.' : idiomaGlobal === 'pt' ? 'Sem tarefas carregadas.' : 'No tasks loaded.'}</p>`;
+        if(cardContenedor) cardContenedor.classList.remove("glow-border-red", "glow-border-yellow", "glow-border-green");
+      } else {
+        guardados.forEach((obj, index) => {
+          const cumplido = estados[fechaHoy][index] || false;
+          if (cumplido) tareasCompletadas++;
+
+          if(contDiario) {
+            const divDiario = document.createElement("div");
+            divDiario.className = "item-list";
+            divDiario.innerHTML = `
+              <div>
+                <span class="dot ${cumplido ? 'dot-green' : 'dot-red'}" onclick="toggleObjetivo(${index})"></span>
+                <span style="${cumplido ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${obj}</span>
+              </div>
+            `;
+            contDiario.appendChild(divDiario);
+          }
+
+          if(contAdmin) {
+            const divAdmin = document.createElement("div");
+            divAdmin.className = "item-list";
+            divAdmin.innerHTML = `<span>• ${obj}</span> <button class="btn-del" onclick="borrarObjetivo(${index})">${idiomaGlobal === 'es' ? 'Eliminar' : idiomaGlobal === 'pt' ? 'Excluir' : 'Delete'}</button>`;
+            contAdmin.appendChild(divAdmin);
+          }
+        });
+
+        if(cardContenedor) {
+          cardContenedor.classList.remove("glow-border-red", "glow-border-yellow", "glow-border-green");
+
+          if (totalTareas === 1) {
+            if (tareasCompletadas === 1) cardContenedor.classList.add("glow-border-green");
+            else cardContenedor.classList.add("glow-border-red");
+          } else {
+            const proporcion = tareasCompletadas / totalTareas;
+            if (tareasCompletadas === totalTareas) {
+              cardContenedor.classList.add("glow-border-green");
+            } else if (proporcion >= 0.5) {
+              cardContenedor.classList.add("glow-border-yellow");
+            } else {
+              cardContenedor.classList.add("glow-border-red");
+            }
+          }
+        }
+      }
+
+      calcularPorcentajeExito();
+    }
+
+    function toggleObjetivo(index) {
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const estados = JSON.parse(localStorage.getItem("estadosObjetivos")) || {};
+      if (!estados[fechaHoy]) estados[fechaHoy] = {};
+
+      estados[fechaHoy][index] = !estados[fechaHoy][index];
+      localStorage.setItem("estadosObjetivos", JSON.stringify(estados));
+      cargarObjetivos();
+      evaluarTrofeos();
+    }
+
+    function agregarObjetivo() {
+      const input = document.getElementById("nuevo-objetivo");
+      const texto = input.value.trim();
+      if (texto !== "") {
+        const guardados = JSON.parse(localStorage.getItem("misObjetivos")) || [];
+        guardados.push(texto);
+        localStorage.setItem("misObjetivos", JSON.stringify(guardados));
+        input.value = "";
+        cargarObjetivos();
+        evaluarTrofeos();
+      }
+    }
+
+    function borrarObjetivo(index) {
+      const guardados = JSON.parse(localStorage.getItem("misObjetivos")) || [];
+      guardados.splice(index, 1);
+      localStorage.setItem("misObjetivos", JSON.stringify(guardados));
+      cargarObjetivos();
+    }
+
+    function cargarHobbies() {
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+      const contLista = document.getElementById("lista-hobbies");
+      if(!contLista) return;
+      contLista.innerHTML = "";
+      const diasNombres = idiomaGlobal === 'es' ? ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"] : idiomaGlobal === 'pt' ? ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"] : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+      hobbies.forEach((hb, idx) => {
+        const div = document.createElement("div");
+        div.className = "item-list";
+        div.innerHTML = `<span>• <strong>${hb.name || hb.nombre}</strong> — ${diasNombres[hb.dia]} at ${hb.hora}</span> <button class="btn-del" onclick="borrarHobby(${idx})">${idiomaGlobal === 'es' ? 'Eliminar' : idiomaGlobal === 'pt' ? 'Excluir' : 'Delete'}</button>`;
+        contLista.appendChild(div);
+      });
+      renderizarHorarioTabla();
+    }
+
+    function agregarHobbyMulti() {
+      const nombre = document.getElementById("hobby-nombre").value.trim();
+      const hora = document.getElementById("hobby-hora-libre").value;
+      const checkboxes = document.querySelectorAll(".chk-dia:checked");
+
+      if (nombre !== "" && checkboxes.length > 0) {
+        const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+        checkboxes.forEach(chk => {
+          hobbies.push({ nombre, dia: parseInt(chk.value), hora });
+        });
+        localStorage.setItem("misHobbies", JSON.stringify(hobbies));
+        document.getElementById("hobby-nombre").value = "";
+        checkboxes.forEach(chk => chk.checked = false);
+        cargarHobbies();
+        actualizarPanel();
+        evaluarTrofeos();
+      } else alert(idiomaGlobal === 'es' ? "Introduce el nombre e indica al menos un día." : idiomaGlobal === 'pt' ? "Insira o nome e indique pelo menos um dia." : "Enter the name and select at least one day.");
+    }
+
+    function borrarHobby(idx) {
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+      hobbies.splice(idx, 1);
+      localStorage.setItem("misHobbies", JSON.stringify(hobbies));
+      cargarHobbies();
+      actualizarPanel();
+    }
+
+    let countdownInterval = null;
+
+    function cargarExamenes() {
+      const guardados = JSON.parse(localStorage.getItem("misExamenes")) || [];
+      const contResumen = document.getElementById("lista-examenes-resumen");
+      const contCompleto = document.getElementById("lista-examenes-completa");
+      if (contResumen) contResumen.innerHTML = ""; 
+      if (contCompleto) contCompleto.innerHTML = "";
+
+      if (guardados.length === 0) {
+        const msg = idiomaGlobal === 'es' ? "Sin compromisos o exámenes agendados." : idiomaGlobal === 'pt' ? "Sem compromissos ou exames agendados." : "No scheduled commitments or exams.";
+        if(contResumen) contResumen.innerHTML = `<p style='color:#64748b;'>${msg}</p>`;
+        if(contCompleto) contCompleto.innerHTML = `<p style='color:#64748b;'>${msg}</p>`;
+        const box = document.getElementById("box-cuenta-atras");
+        if(box) box.style.display = "none";
+        actualizarProximoEventoTrabajador(null);
+        return;
+      }
+
+      const ahora = new Date();
+      guardados.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+      guardados.forEach((ex, index) => {
+        const fechaEx = new Date(ex.fecha);
+        const diff = Math.ceil((fechaEx - ahora) / (1000 * 60 * 60 * 24));
+        const objetivoStr = ex.objetivo ? ` | 🎯 Goal: ${ex.objetivo}` : "";
+        
+        const div = document.createElement("div");
+        div.className = "item-list";
+        let texto = diff > 0 ? `${diff} days left for ${ex.asignatura} (${ex.fecha.replace('T', ' ')})${objetivoStr}` : `${ex.asignatura} (${ex.fecha.replace('T', ' ')})${objetivoStr}`;
+        div.innerHTML = `<span>• ${texto}</span> <button class="btn-del" onclick="borrarExamen(${index})">${idiomaGlobal === 'es' ? 'Eliminar' : idiomaGlobal === 'pt' ? 'Excluir' : 'Delete'}</button>`;
+        
+        if(contCompleto) contCompleto.appendChild(div.cloneNode(true));
+        if(contResumen) contResumen.appendChild(div);
+      });
+
+      const perfil = JSON.parse(localStorage.getItem("perfilUsuario"));
+      if (perfil && perfil.rol !== 'trabajador') {
+        iniciarCuentaAtras(guardados[0]);
+      } else {
+        actualizarProximoEventoTrabajador(guardados[0]);
+      }
+    }
+
+    function actualizarProximoEventoTrabajador(evento) {
+      const titleEl = document.getElementById("event-title");
+      const timeEl = document.getElementById("event-time");
+      if (!titleEl || !timeEl) return;
+
+      if (evento) {
+        titleEl.innerText = `${evento.asignatura} ${evento.objetivo ? '(' + evento.objetivo + ')' : ''}`;
+        timeEl.innerText = evento.fecha.replace('T', ' ');
+      } else {
+        titleEl.innerText = idiomaGlobal === 'es' ? "No hay eventos ni reuniones próximas" : idiomaGlobal === 'pt' ? "Não há eventos ou reuniões próximas" : "No upcoming events or meetings";
+        timeEl.innerText = "--:--";
+      }
+    }
+
+    function iniciarCuentaAtras(examenCercano) {
+      if (!examenCercano) return;
+      const box = document.getElementById("box-cuenta-atras");
+      if(box) box.style.display = "block";
+      document.getElementById("nombre-examen-cercano").innerText = `${examenCercano.asignatura} (${examenCercano.fecha.replace('T', ' ')}) ${examenCercano.objetivo ? '— Goal: ' + examenCercano.objetivo : ''}`;
+
+      if (countdownInterval) clearInterval(countdownInterval);
+      const targetDate = new Date(examenCercano.fecha).getTime();
+
+      countdownInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+
+        if (distance < 0) {
+          clearInterval(countdownInterval);
+          document.getElementById("timer-cuenta-atras").innerText = idiomaGlobal === 'es' ? "¡Ha llegado la fecha!" : idiomaGlobal === 'pt' ? "A data chegou!" : "The date has arrived!";
+          return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("timer-cuenta-atras").innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }, 1000);
+    }
+
+    function agregarExamen() {
+      const materia = document.getElementById("examen-materia-select").value;
+      const fecha = document.getElementById("examen-fecha").value;
+      const objetivo = document.getElementById("examen-objetivo-nota").value.trim();
+
+      if (materia !== "" && fecha !== "") {
+        const guardados = JSON.parse(localStorage.getItem("misExamenes")) || [];
+        guardados.push({ asignatura: materia, fecha: fecha, objetivo: objetivo });
+        localStorage.setItem("misExamenes", JSON.stringify(guardados));
+        document.getElementById("examen-fecha").value = "";
+        document.getElementById("examen-objetivo-nota").value = "";
+        cargarExamenes();
+        evaluarTrofeos();
+      } else alert(idiomaGlobal === 'es' ? "Selecciona la categoría y la fecha." : idiomaGlobal === 'pt' ? "Selecione a categoria e a data." : "Select the category and date.");
+    }
+
+    function borrarExamen(index) {
+      const guardados = JSON.parse(localStorage.getItem("misExamenes")) || [];
+      guardados.splice(index, 1);
+      localStorage.setItem("misExamenes", JSON.stringify(guardados));
+      cargarExamenes();
+    }
+
+    function guardarConfigSueno() {
+      const horas = parseFloat(document.getElementById("sueno-horas").value) || 8;
+      const acostar = document.getElementById("sueno-acostar").value;
+      const despertar = document.getElementById("sueno-despertar").value;
+
+      localStorage.setItem("configSueno", JSON.stringify({ horas, acostar, despertar }));
+      alert(idiomaGlobal === 'es' ? "¡Hábitos guardados!" : idiomaGlobal === 'pt' ? "Hábitos salvos!" : "Habits saved!");
+      cargarControlSueno();
+    }
+
+    function cargarControlSueno() {
+      const cfg = JSON.parse(localStorage.getItem("configSueno")) || { horas: 8, acostar: "23:00", despertar: "07:00" };
+      const sh = document.getElementById("sueno-horas");
+      const sa = document.getElementById("sueno-acostar");
+      const sd = document.getElementById("sueno-despertar");
+      if(sh) sh.value = cfg.horas;
+      if(sa) sa.value = cfg.acostar;
+      if(sd) sd.value = cfg.despertar;
+
+      const rBox = document.getElementById("resumen-sueno-box");
+      if(rBox) {
+        rBox.innerHTML = `
+          <p>🛌 <strong>Goal:</strong> ${cfg.horas}h daily.</p>
+          <p>🌙 <strong>Bedtime:</strong> ${cfg.acostar} | ⏰ <strong>Wake-up:</strong> ${cfg.despertar}</p>
+        `;
+      }
+
+      const infoSuenoPanel = document.getElementById("info-sueno");
+      if (infoSuenoPanel) infoSuenoPanel.innerText = `💤 Goal: Sleep ${cfg.horas}h (Bedtime at ${cfg.acostar}).`;
+    }
+
+    function guardarApunte() {
+      const asignatura = document.getElementById("nota-asig-select").value;
+      const titulo = document.getElementById("nota-titulo").value.trim();
+      const contenido = document.getElementById("nota-contenido").value.trim();
+
+      if (titulo !== "" && contenido !== "") {
+        const apuntes = JSON.parse(localStorage.getItem("misApuntes")) || [];
+        apuntes.push({ asignatura, titulo, contenido, fecha: new Date().toISOString().split('T')[0] });
+        localStorage.setItem("misApuntes", JSON.stringify(apuntes));
+        document.getElementById("nota-titulo").value = "";
+        document.getElementById("nota-contenido").value = "";
+        cargarApuntes();
+        evaluarTrofeos();
+      }
+    }
+
+    function cargarApuntes() { filtrarNotas(); }
+
+    function filtrarNotas() {
+      const busqueda = document.getElementById("buscador-notas") ? document.getElementById("buscador-notas").value.toLowerCase() : "";
+      const filtroAsig = document.getElementById("filtro-asig") ? document.getElementById("filtro-asig").value : "TODAS";
+      const apuntes = JSON.parse(localStorage.getItem("misApuntes")) || [];
+      const contenedor = document.getElementById("contenedor-lista-apuntes");
+      if(!contenedor) return;
+      contenedor.innerHTML = "";
+
+      const filtrados = apuntes.filter(ap => (filtroAsig === "TODAS" || ap.asignatura === filtroAsig) && (ap.titulo.toLowerCase().includes(busqueda) || ap.contenido.toLowerCase().includes(busqueda)));
+
+      if (filtrados.length === 0) {
+        contenedor.innerHTML = `<p style='color:#64748b;'>${idiomaGlobal === 'es' ? 'No hay elementos que coincidan.' : idiomaGlobal === 'pt' ? 'Nenhum item correspondia.' : 'No matching items.'}</p>`;
+        return;
+      }
+
+      filtrados.slice().reverse().forEach((ap) => {
+        const idxOrig = apuntes.indexOf(ap);
+        const div = document.createElement("div");
+        div.className = "note-item";
+        div.innerHTML = `
+          <div class="note-header">
+            <span>📚 <strong>${ap.asignatura}</strong> | 📅 ${ap.fecha}</span>
+            <button class="btn-del" onclick="borrarApunte(${idxOrig})" style="padding:4px 8px; font-size:0.75rem;">${idiomaGlobal === 'es' ? 'Eliminar' : idiomaGlobal === 'pt' ? 'Excluir' : 'Delete'}</button>
+          </div>
+          <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 4px;">${ap.titulo}</div>
+          <div style="white-space: pre-wrap; font-size: 0.95rem;">${ap.contenido}</div>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function borrarApunte(index) {
+      const apuntes = JSON.parse(localStorage.getItem("misApuntes")) || [];
+      apuntes.splice(index, 1);
+      localStorage.setItem("misApuntes", JSON.stringify(apuntes));
+      cargarApuntes();
+    }
+
+    function calcularPorcentajeExito() {
+      const estados = JSON.parse(localStorage.getItem("estadosObjetivos")) || {};
+      const guardados = JSON.parse(localStorage.getItem("misObjetivos")) || [];
+      const tabla = document.getElementById("tabla-historico");
+      if(!tabla) return;
+      tabla.innerHTML = "";
+
+      if (guardados.length === 0) {
+        if(document.getElementById("porcentaje-exito")) document.getElementById("porcentaje-exito").innerText = `0% ${idiomaGlobal === 'es' ? 'de Éxito' : idiomaGlobal === 'pt' ? 'de Sucesso' : 'Success'}`;
+        if(document.getElementById("progress-bar")) document.getElementById("progress-bar").style.width = "0%";
+        return;
+      }
+
+      let totalPuntos = 0, puntosVerdes = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const fechaStr = d.toISOString().split('T')[0];
+        let verdesDia = 0;
+        guardados.forEach((_, idx) => {
+          totalPuntos++;
+          if (estados[fechaStr] && estados[fechaStr][idx]) { puntosVerdes++; verdesDia++; }
+        });
+
+        const tr = document.createElement("tr");
+        const exitoDia = verdesDia === guardados.length;
+        tr.innerHTML = `<td>${fechaStr}</td><td style="color: ${exitoDia ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">${exitoDia ? (idiomaGlobal === 'es' ? 'Completado' : idiomaGlobal === 'pt' ? 'Concluído' : 'Completed') : (idiomaGlobal === 'es' ? 'Incompleto' : idiomaGlobal === 'pt' ? 'Incompleto' : 'Incomplete')}</td>`;
+        tabla.appendChild(tr);
+      }
+
+      const porcentaje = Math.round((puntosVerdes / totalPuntos) * 100);
+      if(document.getElementById("porcentaje-exito")) document.getElementById("porcentaje-exito").innerText = `${porcentaje}% ${idiomaGlobal === 'es' ? 'de Éxito y Constancia' : idiomaGlobal === 'pt' ? 'de Sucesso e Constância' : 'Success & Consistency'}`;
+      if(document.getElementById("progress-bar")) document.getElementById("progress-bar").style.width = `${porcentaje}%`;
+    }
+
+    let timerInterval = null;
+    let bloquesConfig = [{ estudio: 25, descanso: 5 }, { estudio: 25, descanso: 5 }, { estudio: 25, descanso: 5 }, { estudio: 25, descanso: 5 }];
+    let indiceBloqueActual = 0, modoEstudio = true, tiempoRestante = 25 * 60;
+
+    function cargarConfigPomodoro() {
+      const guardado = JSON.parse(localStorage.getItem("bloquesPomodoroIndependientes"));
+      if (guardado && Array.isArray(guardado)) bloquesConfig = guardado;
+      renderizarConfigBloquesUI();
+      reiniciarTimer();
+      actualizarTiempoEstudiadoHoy();
+    }
+
+    function renderizarConfigBloquesUI() {
+      const contenedor = document.getElementById("contenedor-bloques-config");
+      if(!contenedor) return;
+      contenedor.innerHTML = "";
+      bloquesConfig.forEach((b, idx) => {
+        const row = document.createElement("div");
+        row.className = "block-config-row";
+        row.innerHTML = `
+          <span><strong>Block ${idx + 1}</strong></span>
+          <div>
+            <label style="font-size:0.85rem;">Focus (min): <input type="number" id="cfg-estudio-${idx}" class="input-form" value="${b.estudio}" style="width:60px;" /></label>
+            <label style="font-size:0.85rem; margin-left:8px;">Rest (min): <input type="number" id="cfg-descanso-${idx}" class="input-form" value="${b.descanso}" style="width:60px;" /></label>
+          </div>
+        `;
+        contenedor.appendChild(row);
+      });
+    }
+
+    function toggleConfigPomodoro() {
+      const modal = document.getElementById("modal-config-pomodoro");
+      modal.style.display = modal.style.display === "block" ? "none" : "block";
+    }
+
+    function guardarConfigPomodoro() {
+      for (let i = 0; i < bloquesConfig.length; i++) {
+        const estVal = parseInt(document.getElementById(`cfg-estudio-${i}`).value);
+        const descVal = parseInt(document.getElementById(`cfg-descanso-${i}`).value);
+        if (!isNaN(estVal) && estVal > 0) bloquesConfig[i].estudio = estVal;
+        if (!isNaN(descVal) && descVal >= 0) bloquesConfig[i].descanso = descVal;
+      }
+      localStorage.setItem("bloquesPomodoroIndependientes", JSON.stringify(bloquesConfig));
+      toggleConfigPomodoro();
+      reiniciarTimer();
+    }
+
+    function actualizarDisplayTimer() {
+      const min = Math.floor(tiempoRestante / 60).toString().padStart(2, '0');
+      const sec = (tiempoRestante % 60).toString().padStart(2, '0');
+      const bObj = bloquesConfig[indiceBloqueActual];
+      if(document.getElementById("timer-display")) document.getElementById("timer-display").innerText = `${min}:${sec}`;
+      if(document.getElementById("timer-mode")) document.getElementById("timer-mode").innerText = `Block ${indiceBloqueActual + 1} / ${bloquesConfig.length} - ${modoEstudio ? `Focus (${bObj.estudio} min)` : `Rest (${bObj.descanso} min)`}`;
+    }
+
+    function registrarTiempoEstudio(minutos) {
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const logEstudio = JSON.parse(localStorage.getItem("logEstudioDiario")) || {};
+      logEstudio[fechaHoy] = (logEstudio[fechaHoy] || 0) + minutos;
+      localStorage.setItem("logEstudioDiario", JSON.stringify(logEstudio));
+      actualizarTiempoEstudiadoHoy();
+      evaluarTrofeos();
+    }
+
+    function actualizarTiempoEstudiadoHoy() {
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const logEstudio = JSON.parse(localStorage.getItem("logEstudioDiario")) || {};
+      const el = document.getElementById("tiempo-estudiado-hoy");
+      if(el) el.innerText = `${idiomaGlobal === 'es' ? 'Tiempo enfocado hoy' : idiomaGlobal === 'pt' ? 'Tempo focado hoje' : 'Focused time today'}: ${logEstudio[fechaHoy] || 0} min`;
+    }
+
+    function iniciarTimer() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        if (tiempoRestante > 0) {
+          tiempoRestante--;
+          actualizarDisplayTimer();
+        } else {
+          clearInterval(timerInterval); timerInterval = null;
+          const bObj = bloquesConfig[indiceBloqueActual];
+          if (modoEstudio) {
+            registrarTiempoEstudio(bObj.estudio);
+            modoEstudio = false;
+            tiempoRestante = bObj.descanso * 60;
+            alert(idiomaGlobal === 'es' ? `¡Bloque completado! Descanso de ${bObj.descanso} min.` : idiomaGlobal === 'pt' ? `Bloco concluído! Descanso de ${bObj.descanso} min.` : `Block completed! Rest of ${bObj.descanso} min.`);
+          } else {
+            modoEstudio = true;
+            if (indiceBloqueActual < bloquesConfig.length - 1) indiceBloqueActual++;
+            else indiceBloqueActual = 0;
+            tiempoRestante = bloquesConfig[indiceBloqueActual].estudio * 60;
+          }
+          actualizarDisplayTimer();
+        }
+      }, 1000);
+    }
+
+    function pausarTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function reiniciarTimer() { pausarTimer(); modoEstudio = true; indiceBloqueActual = 0; tiempoRestante = bloquesConfig[0].estudio * 60; actualizarDisplayTimer(); }
+
+    // --- EVALUAR TROFEOS (Actualizado con soporte multilingüe) ---
+    function evaluarTrofeos() {
+      const logEstudio = JSON.parse(localStorage.getItem("logEstudioDiario")) || {};
+      let totalMinutos = Object.values(logEstudio).reduce((a, b) => a + b, 0);
+      const examenes = JSON.parse(localStorage.getItem("misExamenes")) || [];
+      const notasGuardadas = JSON.parse(localStorage.getItem("notasAsignaturas")) || {};
+      const metasGuardadas = JSON.parse(localStorage.getItem("metasAsignaturas")) || {};
+      const objetosDiarios = JSON.parse(localStorage.getItem("misObjetivos")) || [];
+      const apuntes = JSON.parse(localStorage.getItem("misApuntes")) || [];
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+
+      let tieneMinuto90 = false;
+      const ahora = new Date();
+      examenes.forEach(ex => {
+        const fechaEx = new Date(ex.fecha);
+        const diffHoras = (fechaEx - ahora) / (1000 * 60 * 60);
+        if (diffHoras > 0 && diffHoras <= 24) tieneMinuto90 = true;
+      });
+
+      let tieneProfeta = false;
+      let tieneOptimista = false;
+      let tieneFenix = false;
+
+      Object.keys(notasGuardadas).forEach(asig => {
+        const datos = notasGuardadas[asig];
+        const lista = Array.isArray(datos) ? datos : (datos ? datos.lista : []);
+        const meta = parseFloat(!Array.isArray(datos) && datos.metaFinal ? datos.metaFinal : metasGuardadas[asig]);
+
+        if (lista.length > 0) {
+          const suma = lista.reduce((a, b) => a + b, 0);
+          const prom = suma / lista.length;
+
+          if (!isNaN(meta)) {
+            if (prom === meta) tieneProfeta = true;
+            if (meta >= 18 && prom < meta) tieneOptimista = true;
+          }
+
+          if (lista.includes(4.9)) tieneFenix = true;
+        }
+      });
+
+      // Diccionario de textos de trofeos según el idioma global
+      const trophiesDict = {
+        en: {
+          t_primer_paso: { nombre: '🌱 First Step', desc: 'Save your first project, note, or event.' },
+          t_foco_estudio: { nombre: '⏱️ Unwavering Focus', desc: 'Complete your first timer session.' },
+          t_archivista: { nombre: '📝 The Archivist', desc: 'Save your first personal note.' },
+          t_equilibrio: { nombre: '🎨 Balanced Life', desc: 'Add a hobby to your week.' },
+          t_maestro_rutina: { nombre: '🏆 Routine Master', desc: 'Accumulate at least 120 focused minutes.' },
+          t_min90: { nombre: '⏱️ Minute 90', desc: 'Register an event within the next 24 hours.' },
+          t_cazador: { nombre: '🎯 Goal Hunter', desc: 'Add your first daily goal.' },
+          t_profeta: { nombre: '🔮 Success Prophet', desc: 'Make your average match your goal.' },
+          t_optimista: { nombre: '✨ Incorrigible Optimist', desc: 'Set a demanding goal (18+).' },
+          t_simulacros: { nombre: '🎓 Expert Planner', desc: 'Register at least 5 events/exams.' },
+          t_calculadora: { nombre: '🧮 Total Control', desc: 'Accumulate more than 10 records.' },
+          t_fenix: { nombre: '🔥 The Phoenix', desc: 'Overcome a complicated grade.' },
+          unlocked: '✅ Unlocked!',
+          locked: '🔒 Locked'
+        },
+        es: {
+          t_primer_paso: { nombre: '🌱 Primer Paso', desc: 'Guarda tu primer proyecto, nota o evento.' },
+          t_foco_estudio: { nombre: '⏱️ Enfoque Inquebrantable', desc: 'Completa tu primera sesión de temporizador.' },
+          t_archivista: { nombre: '📝 El Archivista', desc: 'Guarda tu primera nota personal.' },
+          t_equilibrio: { nombre: '🎨 Vida Equilibrada', desc: 'Añade un hobby a tu semana.' },
+          t_maestro_rutina: { nombre: '🏆 Maestro de la Rutina', desc: 'Acumula al menos 120 minutos enfocados.' },
+          t_min90: { nombre: '⏱️ Minuto 90', desc: 'Registra un evento dentro de las próximas 24 horas.' },
+          t_cazador: { nombre: '🎯 Cazador de Metas', desc: 'Añade tu primer objetivo diario.' },
+          t_profeta: { nombre: '🔮 Profeta del Éxito', desc: 'Haz que tu promedio coincida con tu meta.' },
+          t_optimista: { nombre: '✨ Optimista Incorregible', desc: 'Establece una meta exigente (18+).' },
+          t_simulacros: { nombre: '🎓 Planificador Experto', desc: 'Registra al menos 5 eventos/exámenes.' },
+          t_calculadora: { nombre: '🧮 Control Total', desc: 'Acumula más de 10 registros.' },
+          t_fenix: { nombre: '🔥 El Fénix', desc: 'Supera una calificación complicada.' },
+          unlocked: '✅ ¡Desbloqueado!',
+          locked: '🔒 Bloqueado'
+        },
+        pt: {
+          t_primer_paso: { nombre: '🌱 Primeiro Passo', desc: 'Salve seu primeiro projeto, nota ou evento.' },
+          t_foco_estudio: { nombre: '⏱️ Foco Inabalável', desc: 'Conclua sua primeira sessão de cronômetro.' },
+          t_archivista: { nombre: '📝 O Arquivista', desc: 'Salve sua primeira nota pessoal.' },
+          t_equilibrio: { nombre: '🎨 Vida Equilibrada', desc: 'Adicione um hobby à sua semana.' },
+          t_maestro_rutina: { nombre: '🏆 Mestre da Rotina', desc: 'Acumule pelo menos 120 minutos focados.' },
+          t_min90: { nombre: '⏱️ Minuto 90', desc: 'Registre um evento nas próximas 24 horas.' },
+          t_cazador: { nombre: '🎯 Caçador de Metas', desc: 'Adicione seu primeiro objetivo diário.' },
+          t_profeta: { nombre: '🔮 Profeta do Sucesso', desc: 'Faça sua média corresponder à sua meta.' },
+          t_optimista: { nombre: '✨ Otimista Incorrigível', desc: 'Defina uma meta exigente (18+).' },
+          t_simulacros: { nombre: '🎓 Planejador Especialista', desc: 'Registre pelo menos 5 eventos/exames.' },
+          t_calculadora: { nombre: '🧮 Controle Total', desc: 'Acumule mais de 10 registros.' },
+          t_fenix: { nombre: '🔥 A Fênix', desc: 'Supere uma nota complicada.' },
+          unlocked: '✅ Desbloqueado!',
+          locked: '🔒 Bloqueado'
+        }
+      };
+
+      const langDict = trophiesDict[idiomaGlobal] || trophiesDict.en;
+
+      const listaLogros = [
+        { id: 't_primer_paso', nivel: 'bronze', desbloqueado: (examenes.length > 0 || Object.keys(notasGuardadas).length > 0) },
+        { id: 't_foco_estudio', nivel: 'bronze', desbloqueado: totalMinutos > 0 },
+        { id: 't_archivista', nivel: 'silver', desbloqueado: apuntes.length >= 1 },
+        { id: 't_equilibrio', nivel: 'silver', desbloqueado: hobbies.length >= 1 },
+        { id: 't_maestro_rutina', nivel: 'gold', desbloqueado: totalMinutos >= 120 },
+        { id: 't_min90', nivel: 'bronze', desbloqueado: tieneMinuto90 },
+        { id: 't_cazador', nivel: 'silver', desbloqueado: objetosDiarios.length >= 1 },
+        { id: 't_profeta', nivel: 'gold', desbloqueado: tieneProfeta },
+        { id: 't_optimista', nivel: 'bronze', desbloqueado: tieneOptimista },
+        { id: 't_simulacros', nivel: 'gold', desbloqueado: examenes.length >= 5 },
+        { id: 't_calculadora', nivel: 'diamond', desbloqueado: Object.values(notasGuardadas).reduce((acc, curr) => acc + (Array.isArray(curr) ? curr.length : (curr.lista ? curr.lista.length : 0)), 0) >= 10 },
+        { id: 't_fenix', nivel: 'diamond', desbloqueado: tieneFenix }
+      ];
+
+      const prevDesbloqueados = JSON.parse(localStorage.getItem("trofeosDesbloqueadosNotificados")) || {};
+
+      listaLogros.forEach(tr => {
+        const info = langDict[tr.id];
+        if (tr.desbloqueado && !prevDesbloqueados[tr.id]) {
+          mostrarNotificacionTrofeo(info.nombre);
+          prevDesbloqueados[tr.id] = true;
+        }
+      });
+
+      localStorage.setItem("trofeosDesbloqueadosNotificados", JSON.stringify(prevDesbloqueados));
+
+      const grid = document.getElementById("grid-trofeos");
+      if (!grid) return;
+      grid.innerHTML = "";
+      
+      listaLogros.forEach(tr => {
+        const info = langDict[tr.id];
+        const card = document.createElement("div");
+        card.className = `trophy-card ${tr.desbloqueado ? 'unlocked' : ''}`;
+        card.innerHTML = `
+          <span class="badge-nivel ${tr.desbloqueado ? 'badge-oro' : 'badge-bronce'}">${tr.nivel.toUpperCase()}</span>
+          <h3 style="margin:6px 0;">${info.nombre}</h3>
+          <p style="font-size:0.85rem; margin-bottom:8px;">${info.desc}</p>
+          <div style="font-size:0.85rem; font-weight:600;">${tr.desbloqueado ? langDict.unlocked : langDict.locked}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function exportarDatos() {
+      const datos = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        datos[key] = localStorage.getItem(key);
+      }
+      const blob = new Blob([JSON.stringify(datos)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "copia_reminded.json";
+      a.click();
+    }
+
+    function importarDatos(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const datos = JSON.parse(e.target.result);
+          Object.keys(datos).forEach(k => localStorage.setItem(k, datos[k]));
+          alert("Data successfully restored!");
+          location.reload();
+        } catch (err) { alert("Error importing file."); }
+      };
+      reader.readAsText(event.target.files[0]);
+    }
+
+    function actualizarPanel() {
+      const ahora = new Date();
+      const horaStr = ahora.getHours().toString().padStart(2, '0') + ":" + ahora.getMinutes().toString().padStart(2, '0');
+      const horario = JSON.parse(localStorage.getItem("horarioPersonalizado")) || {};
+      const hobbies = JSON.parse(localStorage.getItem("misHobbies")) || [];
+      const elClase = document.getElementById("info-clase");
+
+      let actividadesHoy = [];
+      const diaHoy = ahora.getDay();
+
+      if (horario[diaHoy]) {
+        horario[diaHoy].forEach(c => actividadesHoy.push({ inicio: c.inicio, nombre: c.asignatura, tipo: "Class", sala: c.sala }));
+      }
+      hobbies.filter(h => h.dia === diaHoy).forEach(h => {
+        actividadesHoy.push({ inicio: h.hora, nombre: `🎨 ${h.name || h.nombre}`, tipo: "Hobby" });
+      });
+
+      actividadesHoy.sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+      if (elClase) {
+        if (actividadesHoy.length === 0) {
+          elClase.innerHTML = idiomaGlobal === 'es' ? "¡Sin actividades programadas para hoy!" : idiomaGlobal === 'pt' ? "Nenhuma atividade agendada para hoje!" : "No activities scheduled for today!";
+        } else {
+          const proxima = actividadesHoy.find(a => a.inicio > horaStr);
+          if (proxima) {
+            elClase.innerHTML = `${idiomaGlobal === 'es' ? 'Próxima actividad' : idiomaGlobal === 'pt' ? 'Próxima atividade' : 'Next activity'}: <strong>${proxima.nombre}</strong> at ${proxima.inicio} ${proxima.sala ? '(' + proxima.sala + ')' : ''}.`;
+          } else {
+            elClase.innerHTML = idiomaGlobal === 'es' ? "Has completado todas tus actividades de hoy. 📖" : idiomaGlobal === 'pt' ? "Você concluiu todas as atividades de hoje. 📖" : "You have completed all your activities for today. 📖";
+          }
+        }
+      }
+      cargarControlSueno();
+    }
+
+    function addTask() {
+      const input = document.getElementById('new-task-input');
+      if (!input) return;
+      const taskText = input.value.trim();
+
+      if (taskText === "") return;
+
+      userTasks.push({ text: taskText, completed: false });
+      input.value = "";
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const listContainer = document.getElementById('task-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = "";
+
+      let completedCount = 0;
+
+      userTasks.forEach((task, index) => {
+        if (task.completed) completedCount++;
+
+        const li = document.createElement('li');
+        li.style.listStyle = "none";
+        li.style.marginBottom = "8px";
+        li.innerHTML = `
+          <input type="checkbox" id="task-${index}" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
+          <label for="task-${index}" style="${task.completed ? 'text-decoration: line-through; opacity: 0.7;' : ''} font-weight: 500;"> ${task.text}</label>
+        `;
+        listContainer.appendChild(li);
+      });
+
+      const total = userTasks.length;
+      const percentage = total === 0 ? 0 : Math.round((completedCount / total) * 100);
+
+      const pb = document.getElementById('goals-progress');
+      const gt = document.getElementById('goals-text');
+      if (pb) pb.style.width = percentage + '%';
+      if (gt) gt.innerText = `${completedCount} of ${total} completed (${percentage}%)`;
+    }
+
+    function toggleTask(index) {
+      if (userTasks[index]) {
+        userTasks[index].completed = !userTasks[index].completed;
+        renderTasks();
+      }
+    }
+
+    function logSleep() {
+      const hours = prompt(idiomaGlobal === 'es' ? "¿Cuántas horas descansaste anoche?:" : idiomaGlobal === 'pt' ? "Quantas horas você descansou ontem à noite?:" : "How many hours did you rest last night?:");
+      if (hours) {
+        const infoSueno = document.getElementById("info-sueno");
+        if(infoSueno) infoSueno.innerText = `💤 Rest: ${hours} hours.`;
+      }
+    }
+
+    function guardarNombreDesdeAjustes() {
+      const nuevoNombre = document.getElementById("ajustes-input-nombre").value.trim();
+      if (!nuevoNombre) {
+        alert(idiomaGlobal === 'es' ? "Escribe un nombre válido." : idiomaGlobal === 'pt' ? "Digite um nome válido." : "Type a valid name.");
+        return;
+      }
+      const perfilActual = JSON.parse(localStorage.getItem("perfilUsuario")) || {};
+      perfilActual.nombre = nuevoNombre;
+      localStorage.setItem("perfilUsuario", JSON.stringify(perfilActual));
+      alert(idiomaGlobal === 'es' ? "¡Nombre actualizado con éxito!" : idiomaGlobal === 'pt' ? "Nome atualizado com sucesso!" : "Name successfully updated!");
+      location.reload();
+    }
+
+    function guardarRolDesdeAjustes() {
+      const nuevoRol = document.getElementById("ajustes-select-rol").value;
+      const perfilActual = JSON.parse(localStorage.getItem("perfilUsuario")) || {};
+      perfilActual.rol = nuevoRol;
+      localStorage.setItem("perfilUsuario", JSON.stringify(perfilActual));
+      alert(idiomaGlobal === 'es' ? "¡Rol actualizado con éxito!" : idiomaGlobal === 'pt' ? "Função atualizada com sucesso!" : "Role successfully updated!");
+      location.reload();
+    }
+
+    function guardarIdiomaDesdeAjustes() {
+      const nuevoIdioma = document.getElementById("ajustes-select-idioma").value;
+      cambiarIdiomaDesdeTop(nuevoIdioma);
+      alert(idiomaGlobal === 'es' ? "¡Idioma actualizado con éxito!" : idiomaGlobal === 'pt' ? "Idioma atualizado com sucesso!" : "Language successfully updated!");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarColorGuardado();
+      cargarModoOscuroGuardado();
+      cargarHobbies();
+      cargarObjetivos();
+      cargarConfigPomodoro();
+      actualizarPanel();
+
+      const perfilGuardado = JSON.parse(localStorage.getItem("perfilUsuario"));
+      if (perfilGuardado) {
+        if (perfilGuardado.idioma) {
+          idiomaGlobal = perfilGuardado.idioma;
+        }
+        cargarInterfazSegunRol();
+        aplicarTraduccionesUI(idiomaGlobal);
+      } else {
+        aplicarTraduccionesUI("en");
+        const pantalla = document.getElementById("pantalla-bienvenida");
+        const app = document.getElementById("app-principal");
+        if (pantalla) pantalla.style.display = "flex";
+        if (app) app.style.display = "none";
+      }
+    });
+
+    
+  </script>
+</body>
+</html>
